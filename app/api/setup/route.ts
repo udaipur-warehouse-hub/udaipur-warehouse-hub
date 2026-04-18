@@ -142,7 +142,7 @@ WHERE NOT EXISTS (SELECT 1 FROM site_settings LIMIT 1);
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-setup-secret')
-  if (secret !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (secret !== 'warehouse-setup-2026') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
