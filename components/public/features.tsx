@@ -17,10 +17,10 @@ const iconMap: Record<string, LucideIcon> = {
 const defaultFeatures = [
   { title: '15,000 Sq Ft', description: 'Grade-A warehouse space with high ceiling clearance and open floor plan', icon: 'Maximize' },
   { title: 'NH Golden Quadrilateral', description: 'Prime location on National Highway at Gukhar Magri, Udaipur', icon: 'MapPin' },
-  { title: '24/7 Security', description: 'Round-the-clock security with CCTV surveillance and guard patrol', icon: 'Shield' },
+  { title: 'Security Available', description: 'Guard and CCTV surveillance can be arranged if needed by the tenant', icon: 'Shield' },
   { title: 'Loading Docks', description: 'Multiple loading/unloading docks for trucks and heavy vehicles', icon: 'Truck' },
   { title: 'Power Backup', description: 'Uninterrupted power supply with industrial-grade backup generators', icon: 'Zap' },
-  { title: 'Fire Safety', description: 'Complete fire safety systems including sprinklers and extinguishers', icon: 'Flame' },
+  { title: 'Fire Safety Available', description: 'Fire safety systems including sprinklers and extinguishers can be arranged on request', icon: 'Flame' },
   { title: 'Flexible Leasing', description: 'Short-term and long-term lease options to suit your business needs', icon: 'Calendar' },
   { title: 'Easy Access', description: 'Wide approach road with easy access for heavy commercial vehicles', icon: 'Route' },
 ]

@@ -1,7 +1,7 @@
 const stats = [
   { value: '15,000', label: 'Sq Ft Area', suffix: '' },
   { value: '30', label: 'Ft Ceiling Height', suffix: '' },
-  { value: '24/7', label: 'Security', suffix: '' },
+  { value: 'NH-48', label: 'Highway Access', suffix: '' },
   { value: '100%', label: 'Power Backup', suffix: '' },
 ]
 

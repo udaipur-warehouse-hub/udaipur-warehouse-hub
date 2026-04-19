@@ -119,10 +119,10 @@ CREATE POLICY "Admins can manage settings"
 INSERT INTO features (title, description, icon, display_order) VALUES
   ('15,000 Sq Ft', 'Grade-A warehouse space with high ceiling clearance and open floor plan', 'Maximize', 1),
   ('NH Golden Quadrilateral', 'Prime location on National Highway at Gukhar Magri, Udaipur', 'MapPin', 2),
-  ('24/7 Security', 'Round-the-clock security with CCTV surveillance and guard patrol', 'Shield', 3),
+  ('Security Available', 'Guard and CCTV surveillance can be arranged if needed by the tenant', 'Shield', 3),
   ('Loading Docks', 'Multiple loading/unloading docks for trucks and heavy vehicles', 'Truck', 4),
   ('Power Backup', 'Uninterrupted power supply with industrial-grade backup generators', 'Zap', 5),
-  ('Fire Safety', 'Complete fire safety systems including sprinklers and extinguishers', 'Flame', 6),
+  ('Fire Safety Available', 'Fire safety systems including sprinklers and extinguishers can be arranged on request', 'Flame', 6),
   ('Flexible Leasing', 'Short-term and long-term lease options to suit your business needs', 'Calendar', 7),
   ('Easy Access', 'Wide approach road with easy access for heavy commercial vehicles', 'Route', 8);
 
