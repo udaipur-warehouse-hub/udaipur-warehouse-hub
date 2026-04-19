@@ -2,12 +2,13 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Warehouse, LayoutDashboard, MessageSquare, LogOut } from 'lucide-react'
+import { Warehouse, LayoutDashboard, MessageSquare, Send, LogOut } from 'lucide-react'
 import Link from 'next/link'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/inquiries', label: 'Inquiries', icon: MessageSquare },
+  { href: '/admin/outreach', label: 'Outreach', icon: Send },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
