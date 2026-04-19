@@ -22,20 +22,22 @@ export async function POST(request: NextRequest) {
   }
 
   let processed = 0
+  let unsubscribed = 0
 
   for (const email of emails) {
-    // Extract sender email from "Name <email>" format
     const emailMatch = email.from.match(/<(.+?)>/)
     const senderEmail = emailMatch ? emailMatch[1] : email.from
     const senderName = email.from.replace(/<.+>/, '').trim() || senderEmail
 
-    // Skip system emails, noreply, newsletters etc.
+    // Skip system emails
     if (
       senderEmail.includes('noreply') ||
       senderEmail.includes('no-reply') ||
       senderEmail.includes('mailer-daemon') ||
       senderEmail.includes('notifications') ||
       senderEmail.includes('newsletter') ||
+      senderEmail.includes('postmaster') ||
+      senderEmail.includes('daemon') ||
       senderEmail === 'aviral.india.udaipur@gmail.com'
     ) {
       await markAsRead(email.id)
@@ -48,6 +50,41 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('contact_email', senderEmail)
       .single()
+
+    // Check for STOP / unsubscribe
+    const bodyLower = email.body.toLowerCase().trim()
+    const subjectLower = email.subject.toLowerCase().trim()
+    const isUnsubscribe =
+      bodyLower === 'stop' ||
+      bodyLower.startsWith('stop') ||
+      bodyLower.includes('unsubscribe') ||
+      bodyLower.includes('remove me') ||
+      bodyLower.includes('not interested') ||
+      subjectLower === 'stop'
+
+    if (isUnsubscribe && target) {
+      // Respect opt-out — mark as not_interested, don't reply
+      await supabase
+        .from('outreach_targets')
+        .update({ status: 'not_interested', notes: 'Opted out via email' })
+        .eq('id', target.id)
+
+      await supabase.from('email_log').insert({
+        target_id: target.id,
+        direction: 'inbound',
+        email_type: 'auto_reply',
+        to_email: 'aviral.india.udaipur@gmail.com',
+        from_email: senderEmail,
+        subject: email.subject,
+        body: 'UNSUBSCRIBED',
+        gmail_message_id: email.id,
+        status: 'sent',
+      })
+
+      await markAsRead(email.id)
+      unsubscribed++
+      continue
+    }
 
     if (target) {
       // Update target status to replied
@@ -77,7 +114,6 @@ export async function POST(request: NextRequest) {
     const result = await sendReply(email.id, email.id, senderEmail, reply.subject, reply.body)
 
     if (result.success) {
-      // Log outbound reply
       await supabase.from('email_log').insert({
         target_id: target?.id || null,
         direction: 'outbound',
@@ -94,5 +130,5 @@ export async function POST(request: NextRequest) {
     processed++
   }
 
-  return NextResponse.json({ processed, total: emails.length })
+  return NextResponse.json({ processed, unsubscribed, total: emails.length })
 }
