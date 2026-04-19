@@ -49,16 +49,19 @@ export async function POST(request: NextRequest) {
     else if (daysSinceFirst >= 7) dailyLimit = 3
   }
 
-  // Check how many already sent today
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  // Check how many successfully sent today (IST timezone)
+  const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000)
+  const todayStartIST = new Date(nowIST)
+  todayStartIST.setHours(0, 0, 0, 0)
+  const todayStartUTC = new Date(todayStartIST.getTime() - 5.5 * 60 * 60 * 1000)
 
   const { data: todayEmails } = await supabase
     .from('email_log')
     .select('id')
     .eq('email_type', 'cold_outreach')
     .eq('direction', 'outbound')
-    .gte('created_at', todayStart.toISOString())
+    .eq('status', 'sent')
+    .gte('created_at', todayStartUTC.toISOString())
 
   const alreadySentToday = todayEmails?.length || 0
   const remaining = Math.max(0, dailyLimit - alreadySentToday)
