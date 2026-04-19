@@ -5,6 +5,19 @@ interface AIResponse {
   body: string
 }
 
+// Randomize temperature and style to avoid pattern detection
+function randomTemp(): number {
+  return 0.75 + Math.random() * 0.2 // 0.75-0.95
+}
+
+const tones = ['casual and friendly', 'straightforward and professional', 'warm and conversational', 'brief and direct']
+const signoffs = ['Best,', 'Regards,', 'Thanks,', 'Cheers,', 'Talk soon,', 'Looking forward,']
+const senderNames = ['Avi', 'Avi Jain', 'AJ']
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
 async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
   const res = await fetch(GROQ_API, {
     method: 'POST',
@@ -18,7 +31,7 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.7,
+      temperature: randomTemp(),
       max_tokens: 1024,
     }),
   })
@@ -27,33 +40,48 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
   return data.choices?.[0]?.message?.content || ''
 }
 
-const WAREHOUSE_CONTEXT = `You are an AI business development assistant for Udaipur Warehouse Hub.
+const WAREHOUSE_CONTEXT = `You are Avi, a young businessman from Udaipur who owns a warehouse. You're writing emails yourself — NOT as a company, NOT as an AI, NOT as a marketing team. You're a real person reaching out.
 
-Key details about the warehouse:
-- 15,000 sq ft Grade-A warehouse space
-- Location: Gukhar Magri, on NH-48 Golden Quadrilateral, Udaipur, Rajasthan
-- Features: Loading docks, power backup, flexible leasing (short & long term), easy highway access
-- Security and fire safety can be arranged if needed by tenant
-- Suitable for: storage, distribution, e-commerce fulfillment, light manufacturing, cold storage setup
+About your warehouse:
+- 15,000 sq ft at Gukhar Magri, right on NH-48 (Golden Quadrilateral), Udaipur
+- Loading docks, power backup, flexible lease terms
+- Security and fire safety arranged if tenant needs it
+- Good for storage, distribution, e-commerce, light manufacturing
 
-You write professional, warm, and concise business emails. No fluff. Get to the point.
-Always sign off as "Aviral India | Udaipur Warehouse Hub".
-Never make up facts. Stick to what's provided.`
+CRITICAL RULES — follow these strictly:
+- Write like a real person typing an email, not a template
+- NEVER use marketing language like "Grade-A", "premier", "state-of-the-art", "thrilled", "excited to reach out"
+- NEVER use bullet points or numbered lists in emails
+- NEVER start with "I hope this email finds you well" or "I came across your company"
+- Use natural, slightly imperfect language — like a human would
+- Vary sentence length. Mix short and long.
+- Occasionally use contractions (don't, we've, that's)
+- Keep emails SHORT — 60-120 words max. Real people write short emails
+- Don't mention every feature. Pick 1-2 that matter for that company's industry
+- Sign off casually, not with a corporate signature block`
 
 export async function composeOutreachEmail(
   companyName: string,
   industry: string,
   contactName?: string
 ): Promise<AIResponse> {
-  const prompt = `Write a cold outreach email to ${companyName} (industry: ${industry}).
-${contactName ? `Contact person: ${contactName}.` : ''}
+  const tone = pick(tones)
+  const signoff = pick(signoffs)
+  const sender = pick(senderNames)
+  const wordLimit = 60 + Math.floor(Math.random() * 60) // 60-120 words
 
-Goal: Introduce our 15,000 sq ft warehouse in Udaipur and explore if they need warehouse space.
-Make it personal to their industry. Keep it under 150 words.
-Be professional but human — not salesy.
+  const prompt = `Write a cold email to ${companyName} (${industry}).
+${contactName ? `Person: ${contactName}.` : ''}
 
-Respond in this exact JSON format:
-{"subject": "email subject line", "body": "email body in HTML with <p> tags"}`
+Tone: ${tone}
+Max ${wordLimit} words. Sign off with "${signoff}" then "${sender}" on next line, then "Udaipur Warehouse Hub" below that.
+
+Don't use their company name more than once. Don't list features. Just mention why your warehouse location or size might be useful for their kind of business, and ask if they'd want to know more.
+
+IMPORTANT: Make this sound like a real person wrote it in 2 minutes, not a crafted marketing email.
+
+Respond in this exact JSON format only, nothing else:
+{"subject": "short natural subject line", "body": "email body in HTML with <p> tags"}`
 
   const response = await callGroq(WAREHOUSE_CONTEXT, prompt)
   try {
@@ -63,8 +91,8 @@ Respond in this exact JSON format:
     }
   } catch {}
   return {
-    subject: `Warehouse Space in Udaipur — ${companyName}`,
-    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>We have a 15,000 sq ft Grade-A warehouse available at Gukhar Magri, Udaipur, on the NH-48 Golden Quadrilateral. Would this be useful for ${companyName}?</p><p>Happy to share more details or arrange a visit.</p><p>Best regards,<br>Aviral India | Udaipur Warehouse Hub</p>`,
+    subject: `warehouse space in udaipur`,
+    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I have a 15,000 sq ft warehouse on NH-48 in Udaipur — right on the Golden Quadrilateral. Wondering if ${companyName} could use something like this for ${industry.toLowerCase()} operations in Rajasthan?</p><p>Happy to share details if it's relevant.</p><p>${signoff}<br>${sender}<br>Udaipur Warehouse Hub</p>`,
   }
 }
 
@@ -73,11 +101,21 @@ export async function composeFollowUpEmail(
   originalSubject: string,
   daysSince: number
 ): Promise<AIResponse> {
-  const prompt = `Write a follow-up email to ${companyName}.
-We sent them an initial email about our warehouse ${daysSince} days ago with subject "${originalSubject}" but got no reply.
-Keep it very short (under 80 words). Gentle nudge, not pushy.
+  const sender = pick(senderNames)
+  const approaches = [
+    `Bumping this up. Sent you a note ${daysSince} days back about warehouse space in Udaipur. Any thoughts?`,
+    `Hey, just circling back on this. Totally understand if it's not a fit — just wanted to check before I move on.`,
+    `Quick follow-up on my earlier email. If warehouse space near Udaipur isn't something you need right now, no worries at all.`,
+    `Checking in — did you get a chance to see my last email? If this isn't the right time, I completely understand.`,
+  ]
 
-Respond in this exact JSON format:
+  const prompt = `Write a very short follow-up email (under 50 words, just 2-3 sentences) to ${companyName}.
+
+Use this as inspiration but rewrite naturally: "${pick(approaches)}"
+
+Sign off with just "${sender}".
+
+JSON format only:
 {"subject": "Re: ${originalSubject}", "body": "email body in HTML with <p> tags"}`
 
   const response = await callGroq(WAREHOUSE_CONTEXT, prompt)
@@ -89,7 +127,7 @@ Respond in this exact JSON format:
   } catch {}
   return {
     subject: `Re: ${originalSubject}`,
-    body: `<p>Hi,</p><p>Just following up on my previous email about warehouse space in Udaipur. Would love to know if this is something ${companyName} might need.</p><p>Happy to chat whenever convenient.</p><p>Best,<br>Aviral India | Udaipur Warehouse Hub</p>`,
+    body: `<p>Hey, just bumping this. Let me know if warehouse space in Udaipur is something worth chatting about — happy to give you the details.</p><p>${sender}</p>`,
   }
 }
 
@@ -98,17 +136,20 @@ export async function composeReplyEmail(
   incomingSubject: string,
   incomingBody: string
 ): Promise<AIResponse> {
-  const prompt = `Someone replied to our warehouse outreach email. Compose a helpful reply.
+  const sender = pick(senderNames)
+
+  const prompt = `Someone replied to your warehouse outreach. Reply naturally as yourself (Avi).
 
 Their name: ${senderName}
 Subject: ${incomingSubject}
 Their message: ${incomingBody}
 
-Reply naturally based on what they asked or said. If they're interested, offer to schedule a site visit or call. If they ask about pricing, say we offer flexible rates and suggest a call to discuss. If they're not interested, thank them politely.
-Keep it under 100 words.
+Keep it under 80 words. Be natural and helpful. If interested, suggest a call or visit. If asking price, say it depends on space and duration, suggest a call. If not interested, say thanks and move on.
 
-Respond in this exact JSON format:
-{"subject": "Re: ${incomingSubject}", "body": "reply body in HTML with <p> tags"}`
+Don't sound corporate. Sound like you're replying from your phone.
+
+JSON format only:
+{"subject": "Re: ${incomingSubject}", "body": "reply in HTML with <p> tags, sign off as ${sender}"}`
 
   const response = await callGroq(WAREHOUSE_CONTEXT, prompt)
   try {
@@ -119,6 +160,6 @@ Respond in this exact JSON format:
   } catch {}
   return {
     subject: `Re: ${incomingSubject}`,
-    body: `<p>Hi ${senderName},</p><p>Thank you for getting back to us! I'd be happy to discuss this further. Would you be available for a quick call or would you like to schedule a site visit?</p><p>Best regards,<br>Aviral India | Udaipur Warehouse Hub</p>`,
+    body: `<p>Hey ${senderName}, thanks for getting back! Happy to chat more about this. Want to hop on a quick call, or if you're ever in Udaipur I can show you the space?</p><p>${sender}</p>`,
   }
 }
