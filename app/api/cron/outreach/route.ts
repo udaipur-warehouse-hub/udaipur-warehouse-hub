@@ -19,8 +19,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Skip weekends — businesses ignore weekend emails
-  if (isWeekend()) {
+  // Skip weekends — businesses ignore weekend emails (override with x-force-send header)
+  const forceRun = request.headers.get('x-force-send') === 'true'
+  if (isWeekend() && !forceRun) {
     return NextResponse.json({ sent: 0, message: 'Skipped — weekend' })
   }
 
