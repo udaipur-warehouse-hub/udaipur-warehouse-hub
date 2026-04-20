@@ -103,12 +103,17 @@ export async function POST(request: NextRequest) {
       continue
     }
 
-    // Look up outreach target
+    // Look up outreach target — ONLY process emails from companies we contacted
     const { data: target } = await supabase
       .from('outreach_targets')
       .select('*')
       .eq('contact_email', senderEmail)
       .single()
+
+    // Not one of our targets — could be personal email or anything unrelated. Leave it alone.
+    if (!target) {
+      continue
+    }
 
     // Use AI to classify what kind of email this actually is
     const classification = await classifyInboundEmail(
