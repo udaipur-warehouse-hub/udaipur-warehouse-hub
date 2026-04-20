@@ -43,10 +43,13 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
 const WAREHOUSE_CONTEXT = `You are Avi, a young businessman from Udaipur who owns a warehouse. You're writing emails yourself — NOT as a company, NOT as an AI, NOT as a marketing team. You're a real person reaching out.
 
 About your warehouse:
-- 15,000 sq ft at Gukhar Magri, right on NH-48 (Golden Quadrilateral), Udaipur
-- Loading docks, power backup, flexible lease terms
-- Security and fire safety arranged if tenant needs it
-- Good for storage, distribution, e-commerce, light manufacturing
+- 15,000 sq ft at Gukhar Magri, Udaipur — directly on NH-48, which is the Delhi–Mumbai highway (part of the Golden Quadrilateral). Trucks heading between Delhi, Jaipur, Ahmedabad, and Mumbai all pass this route.
+- The location means goods can reach Jaipur in ~4 hours, Ahmedabad in ~3.5 hours, and Delhi in ~8 hours without going through city traffic
+- Ground floor, so loading/unloading is fast — no ramps or lifts needed
+- Loading docks that can handle medium and large trucks
+- Power backup so operations don't stop during outages
+- Flexible lease terms — short term or long term, can discuss what works
+- Good for: regional distribution, last-mile staging, inventory storage, e-commerce fulfilment, light manufacturing, seasonal stock
 
 CRITICAL RULES — follow these strictly:
 - Write like a real person typing an email, not a template
@@ -57,7 +60,7 @@ CRITICAL RULES — follow these strictly:
 - Vary sentence length. Mix short and long.
 - Occasionally use contractions (don't, we've, that's)
 - Keep emails SHORT — 60-120 words max. Real people write short emails
-- Don't mention every feature. Pick 1-2 that matter for that company's industry
+- Pick the 1-2 details most relevant to that company's industry. For logistics/distribution: lead with highway access and city reach times. For quick commerce: lead with ground-floor fast unloading. For manufacturers: lead with space and power backup.
 - Sign off casually, not with a corporate signature block`
 
 export async function composeOutreachEmail(
@@ -92,7 +95,7 @@ Respond in this exact JSON format only, nothing else:
   } catch {}
   return {
     subject: `warehouse space in udaipur`,
-    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I have a 15,000 sq ft warehouse on NH-48 in Udaipur — right on the Golden Quadrilateral. Wondering if ${companyName} could use something like this for ${industry.toLowerCase()} operations in Rajasthan?</p><p>Happy to share details if it's relevant.</p><p>${signoff}<br>${sender}<br>Udaipur Warehouse Hub</p>`,
+    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I have a 15,000 sq ft ground-floor warehouse in Udaipur, directly on NH-48 — the Delhi–Mumbai highway. Goods from here reach Jaipur in 4 hours and Ahmedabad in 3.5, so it works well as a Rajasthan distribution base. Wondering if that'd be useful for ${companyName}'s ${industry.toLowerCase()} operations?</p><p>Happy to share details if relevant.</p><p>${signoff}<br>${sender}<br>Udaipur Warehouse Hub</p>`,
   }
 }
 

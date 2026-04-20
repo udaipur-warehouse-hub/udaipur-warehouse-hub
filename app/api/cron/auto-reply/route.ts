@@ -29,17 +29,48 @@ export async function POST(request: NextRequest) {
     const senderEmail = emailMatch ? emailMatch[1] : email.from
     const senderName = email.from.replace(/<.+>/, '').trim() || senderEmail
 
-    // Skip system emails
-    if (
-      senderEmail.includes('noreply') ||
-      senderEmail.includes('no-reply') ||
-      senderEmail.includes('mailer-daemon') ||
-      senderEmail.includes('notifications') ||
-      senderEmail.includes('newsletter') ||
-      senderEmail.includes('postmaster') ||
-      senderEmail.includes('daemon') ||
-      senderEmail === 'aviral.india.udaipur@gmail.com'
-    ) {
+    // Skip system emails, mailing lists, and auto-responders
+    const autoSenderPatterns = [
+      'noreply', 'no-reply', 'mailer-daemon', 'notifications', 'newsletter',
+      'postmaster', 'daemon', 'masscomm', 'automail', 'donotreply',
+      'do-not-reply', 'bounce', 'listserv', 'majordomo', 'mailman',
+      'unsubscribe', 'bulk', 'marketing@', 'info@',
+    ]
+    const isAutoSender = autoSenderPatterns.some(p => senderEmail.toLowerCase().includes(p))
+
+    // Detect auto-reply / OOO by subject or body content
+    const subjectLowerCheck = email.subject.toLowerCase()
+    const bodyLowerCheck = email.body.toLowerCase()
+    const autoReplyIndicators = [
+      'auto-reply', 'autoreply', 'automatic reply', 'out of office',
+      'on vacation', 'away from office', 'i am currently out',
+      'auto generated', 'auto-generated', 'do not reply to this',
+      'this is an automated', 'automatically generated',
+      'delivery status', 'delivery failure', 'undeliverable',
+      'mail delivery', 'returned mail',
+    ]
+    const isAutoReplyContent = autoReplyIndicators.some(
+      ind => subjectLowerCheck.includes(ind) || bodyLowerCheck.includes(ind)
+    )
+
+    if (isAutoSender || isAutoReplyContent || senderEmail === 'aviral.india.udaipur@gmail.com') {
+      await markAsRead(email.id)
+      continue
+    }
+
+    // Anti-loop: skip if we already replied to this sender in the last 24h
+    const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { data: recentReply } = await supabase
+      .from('email_log')
+      .select('id')
+      .eq('direction', 'outbound')
+      .eq('to_email', senderEmail)
+      .gte('created_at', cutoff24h)
+      .limit(1)
+      .single()
+
+    if (recentReply) {
+      // Already replied to this address recently — mark read, skip
       await markAsRead(email.id)
       continue
     }
@@ -53,14 +84,13 @@ export async function POST(request: NextRequest) {
 
     // Check for STOP / unsubscribe
     const bodyLower = email.body.toLowerCase().trim()
-    const subjectLower = email.subject.toLowerCase().trim()
     const isUnsubscribe =
       bodyLower === 'stop' ||
       bodyLower.startsWith('stop') ||
       bodyLower.includes('unsubscribe') ||
       bodyLower.includes('remove me') ||
       bodyLower.includes('not interested') ||
-      subjectLower === 'stop'
+      subjectLowerCheck === 'stop'
 
     if (isUnsubscribe && target) {
       // Respect opt-out — mark as not_interested, don't reply
