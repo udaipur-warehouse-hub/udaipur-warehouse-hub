@@ -9,8 +9,10 @@ import Card, { CardContent } from '@/components/ui/card'
 import type { OutreachTarget } from '@/types/outreach'
 
 const industries = [
-  'E-commerce', 'Logistics', 'Distribution', 'Manufacturing',
-  'FMCG', 'Pharmaceuticals', 'Agriculture', 'Retail', 'Cold Storage', 'Other',
+  'Paints & Coatings', 'Building Materials', 'Marble & Granite',
+  'Quick Commerce', 'FMCG', 'Logistics', 'Distribution', 'E-commerce',
+  'Manufacturing', 'Pharmaceuticals', 'Chemicals', 'Agriculture',
+  'Retail', 'Cold Storage', 'Other',
 ]
 
 export default function OutreachPage() {

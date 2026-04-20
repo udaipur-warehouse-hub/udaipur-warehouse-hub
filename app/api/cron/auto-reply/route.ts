@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getUnreadEmails, markAsRead, sendReply } from '@/lib/gmail'
+import { getUnreadEmails, markAsRead, sendReply, sendEmail } from '@/lib/gmail'
 import { composeReplyEmail } from '@/lib/ai'
+
+const OWNER_ALERT_EMAIL = 'jainavi.aj@gmail.com'
+
+async function alertOwner(companyName: string, senderEmail: string, subject: string, snippet: string) {
+  const body = `<p><strong>Someone replied to your warehouse outreach.</strong></p>
+<p><strong>Company:</strong> ${companyName || senderEmail}<br>
+<strong>Email:</strong> ${senderEmail}<br>
+<strong>Subject:</strong> ${subject}</p>
+<p><strong>Their message:</strong><br>${snippet}</p>
+<p style="margin-top:20px;color:#666;font-size:12px;">The AI has already sent an auto-reply. If they seem genuinely interested, follow up personally.</p>`
+  await sendEmail(OWNER_ALERT_EMAIL, `Hot lead: ${companyName || senderEmail} replied`, body)
+}
 
 // Runs on schedule: reads inbox, auto-replies using AI
 export async function POST(request: NextRequest) {
@@ -154,6 +166,14 @@ export async function POST(request: NextRequest) {
         body: reply.body,
         status: 'sent',
       })
+
+      // Notify owner so they can personally follow up if the lead is warm
+      await alertOwner(
+        target?.company_name || '',
+        senderEmail,
+        email.subject,
+        email.body.substring(0, 400)
+      )
     }
 
     await markAsRead(email.id)

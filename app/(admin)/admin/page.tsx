@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MessageSquare, UserCheck, Handshake, CheckCircle, XCircle, TrendingUp } from 'lucide-react'
+import { MessageSquare, UserCheck, Handshake, CheckCircle, XCircle, TrendingUp, Send, MailOpen, Clock, BarChart2 } from 'lucide-react'
 import Card, { CardContent } from '@/components/ui/card'
 import type { DashboardStats, Inquiry } from '@/types'
 import Badge from '@/components/ui/badge'
@@ -84,6 +84,36 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Outreach Performance */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-white">Outreach Autopilot</h2>
+          <Link href="/admin/outreach" className="text-sm text-amber-400 hover:text-amber-300 transition-colors">Manage →</Link>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Sent Today', value: stats?.outreach_sent_today ?? 0, icon: Send, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+            { label: 'Total Sent', value: stats?.outreach_total_sent ?? 0, icon: MailOpen, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+            { label: 'Replied', value: stats?.outreach_replied ?? 0, icon: TrendingUp, color: 'text-green-400', bg: 'bg-green-500/10' },
+            { label: 'Reply Rate', value: `${stats?.outreach_reply_rate ?? 0}%`, icon: BarChart2, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+          ].map((s) => (
+            <Card key={s.label}>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${s.bg}`}>
+                    <s.icon className={`w-4 h-4 ${s.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white">{s.value}</p>
+                    <p className="text-xs text-slate-400">{s.label}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Recent Inquiries */}

@@ -55,4 +55,9 @@ export interface DashboardStats {
   negotiating: number
   converted: number
   rejected: number
+  outreach_sent_today: number
+  outreach_total_sent: number
+  outreach_replied: number
+  outreach_pending: number
+  outreach_reply_rate: number
 }
