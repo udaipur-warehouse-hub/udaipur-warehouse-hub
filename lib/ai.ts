@@ -11,7 +11,7 @@ function randomTemp(): number {
 
 const tones = ['professional but approachable', 'straightforward and professional', 'clear and direct', 'businesslike but warm']
 const signoffs = ['Best regards,', 'Regards,', 'Thanks,', 'Best,', 'With regards,']
-const senderNames = ['Avi Jain', 'Aviral Jain', 'Avi Jain']
+const senderNames = ['Avi Jain']
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -110,7 +110,7 @@ Tone: ${tone}
 ANGLE FOR THIS INDUSTRY:
 ${industryHint}
 
-Sign off: "${signoff}" / "${sender}" / "Udaipur Warehouse Hub"
+Sign off: "${signoff}" / "${sender}" / "Aviral India"
 
 Rules:
 - 80–120 words only
@@ -131,7 +131,7 @@ Respond in this exact JSON format, nothing else:
   } catch {}
   return {
     subject: `warehouse space in Udaipur — on NH-48`,
-    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I own a 15,000 sq ft ground-floor warehouse at Gukhar Magri, NH-48, Udaipur, Rajasthan 313001 — directly on the Delhi–Mumbai highway. From here you can cover Jaipur in 4 hours and Ahmedabad in 3.5, which makes it a useful Rajasthan distribution base without routing through Jaipur.</p><p>Wondering if ${companyName} could use this for ${industry.toLowerCase()} operations in the region. Happy to share details if it's worth a look.</p><p>${signoff}<br>${sender}<br>Udaipur Warehouse Hub</p>`,
+    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I own a 15,000 sq ft ground-floor warehouse at Gukhar Magri, NH-48, Udaipur, Rajasthan 313001 — directly on the Delhi–Mumbai highway. From here you can cover Jaipur in 4 hours and Ahmedabad in 3.5, which makes it a useful Rajasthan distribution base without routing through Jaipur.</p><p>Wondering if ${companyName} could use this for ${industry.toLowerCase()} operations in the region. Happy to share details if it's worth a look.</p><p>${signoff}<br>${sender}<br>Aviral India</p>`,
   }
 }
 

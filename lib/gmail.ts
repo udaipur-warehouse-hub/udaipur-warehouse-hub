@@ -21,7 +21,7 @@ async function getAccessToken(): Promise<string> {
 function encodeEmail(to: string, subject: string, body: string, from?: string): string {
   const sender = from || 'aviral.india.udaipur@gmail.com'
   const email = [
-    `From: Udaipur Warehouse Hub <${sender}>`,
+    `From: Aviral India <${sender}>`,
     `To: ${to}`,
     `Subject: ${subject}`,
     'MIME-Version: 1.0',
