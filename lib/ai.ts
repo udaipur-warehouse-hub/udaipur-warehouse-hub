@@ -5,6 +5,12 @@ interface AIResponse {
   body: string
 }
 
+export interface EmailClassification {
+  type: 'GENUINE_INTEREST' | 'REDIRECT' | 'AUTO_ACK' | 'NOT_INTERESTED' | 'OOO'
+  reason: string
+  redirect_contact?: string
+}
+
 function randomTemp(): number {
   return 0.75 + Math.random() * 0.2 // 0.75-0.95
 }
@@ -205,4 +211,46 @@ JSON format only:
     subject: `Re: ${incomingSubject}`,
     body: `<p>Hey ${senderName}, thanks for getting back! Happy to walk you through the details. Want to hop on a quick call, or if you're in Udaipur I can show you the space — it's right on NH-48 at Gukhar Magri.</p><p>${sender}</p>`,
   }
+}
+
+export async function classifyInboundEmail(
+  subject: string,
+  body: string,
+  companyName?: string
+): Promise<EmailClassification> {
+  const prompt = `You received this email in response to a warehouse rental cold outreach. Classify it.
+
+Company: ${companyName || 'unknown'}
+Subject: ${subject}
+Message: ${body}
+
+Classify into exactly one of these types:
+- GENUINE_INTEREST: A real human is actually interested, asking questions, wants details, or wants to discuss. Even a short "tell me more" counts.
+- REDIRECT: They're saying you contacted the wrong person and are pointing to someone else (may include a name or email).
+- AUTO_ACK: Auto-generated acknowledgment — "we have received your email", "we'll get back to you", "thank you for contacting us", ticket number assigned, etc.
+- NOT_INTERESTED: They're declining, saying they don't need it, or asking to be removed.
+- OOO: Out of office, on leave, vacation, will return on X date.
+
+Rules:
+- If unsure between GENUINE_INTEREST and anything else, lean toward the non-interest type — we only want to alert the owner for real leads
+- A message that says "we'll get back to you" is AUTO_ACK, not GENUINE_INTEREST
+- If they mention a specific person's name or email to contact instead, type is REDIRECT
+
+Respond in this exact JSON format only:
+{"type": "TYPE", "reason": "one line why", "redirect_contact": "email or name if REDIRECT, else null"}`
+
+  const response = await callGroq(
+    'You are classifying emails for a warehouse owner. Be conservative — only mark GENUINE_INTEREST if a real human is showing real interest.',
+    prompt
+  )
+
+  try {
+    const jsonMatch = response.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0])
+    }
+  } catch {}
+
+  // Default to AUTO_ACK when unsure — better to under-alert than spam the owner
+  return { type: 'AUTO_ACK', reason: 'Could not classify, defaulting to skip' }
 }

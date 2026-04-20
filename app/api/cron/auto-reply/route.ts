@@ -1,21 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getUnreadEmails, markAsRead, sendReply, sendEmail } from '@/lib/gmail'
-import { composeReplyEmail } from '@/lib/ai'
+import { composeReplyEmail, classifyInboundEmail } from '@/lib/ai'
 
-const OWNER_ALERT_EMAIL = 'jainavi.aj@gmail.com'
+const AVI_EMAIL = 'jainavi.aj@gmail.com'
+const RATNESH_EMAIL = 'ratneshshah67@gmail.com'
 
-async function alertOwner(companyName: string, senderEmail: string, subject: string, snippet: string) {
-  const body = `<p><strong>Someone replied to your warehouse outreach.</strong></p>
-<p><strong>Company:</strong> ${companyName || senderEmail}<br>
+async function alertGenuineLead(
+  companyName: string,
+  senderEmail: string,
+  subject: string,
+  messageSnippet: string,
+  aiReplied: boolean
+) {
+  const body = `<p><strong>Genuine lead — ${companyName || senderEmail} replied to your warehouse outreach.</strong></p>
+<p><strong>Company:</strong> ${companyName || '—'}<br>
 <strong>Email:</strong> ${senderEmail}<br>
 <strong>Subject:</strong> ${subject}</p>
-<p><strong>Their message:</strong><br>${snippet}</p>
-<p style="margin-top:20px;color:#666;font-size:12px;">The AI has already sent an auto-reply. If they seem genuinely interested, follow up personally.</p>`
-  await sendEmail(OWNER_ALERT_EMAIL, `Hot lead: ${companyName || senderEmail} replied`, body)
+<p><strong>What they said:</strong><br>${messageSnippet}</p>
+<p style="color:#333;margin-top:16px;">${aiReplied ? 'The AI has already sent an initial reply. Follow up personally to close this.' : 'The AI could not send a reply — follow up manually.'}</p>`
+
+  // Alert both Avi and Ratnesh — these are the only emails worth their attention
+  await Promise.all([
+    sendEmail(AVI_EMAIL, `Lead reply: ${companyName || senderEmail}`, body),
+    sendEmail(RATNESH_EMAIL, `Lead reply: ${companyName || senderEmail}`, body),
+  ])
 }
 
-// Runs on schedule: reads inbox, auto-replies using AI
+async function alertRedirect(
+  companyName: string,
+  senderEmail: string,
+  subject: string,
+  messageSnippet: string,
+  redirectContact: string | null
+) {
+  const body = `<p><strong>${companyName || senderEmail} is redirecting you to a different contact.</strong></p>
+<p><strong>From:</strong> ${senderEmail}<br>
+<strong>Subject:</strong> ${subject}</p>
+${redirectContact ? `<p><strong>New contact to reach:</strong> ${redirectContact}</p>` : ''}
+<p><strong>Their full message:</strong><br>${messageSnippet}</p>
+<p style="color:#333;margin-top:16px;">Add the new contact as an outreach target manually if relevant.</p>`
+
+  // Only alert Avi for redirects — Ratnesh doesn't need this
+  await sendEmail(AVI_EMAIL, `New contact found: ${companyName || senderEmail}`, body)
+}
+
+// Runs on schedule: reads inbox, classifies with AI, auto-replies to genuine leads
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-cron-secret')
   if (secret !== process.env.CRON_SECRET) {
@@ -35,43 +65,24 @@ export async function POST(request: NextRequest) {
 
   let processed = 0
   let unsubscribed = 0
+  let skipped = 0
 
   for (const email of emails) {
     const emailMatch = email.from.match(/<(.+?)>/)
     const senderEmail = emailMatch ? emailMatch[1] : email.from
     const senderName = email.from.replace(/<.+>/, '').trim() || senderEmail
 
-    // Skip system emails, mailing lists, and auto-responders
-    const autoSenderPatterns = [
-      'noreply', 'no-reply', 'mailer-daemon', 'notifications', 'newsletter',
-      'postmaster', 'daemon', 'masscomm', 'automail', 'donotreply',
-      'do-not-reply', 'bounce', 'listserv', 'majordomo', 'mailman',
-      'unsubscribe', 'bulk', 'marketing@', 'info@',
+    // Hard skip — definitely system/bot senders, never worth processing
+    const hardSkipPatterns = [
+      'mailer-daemon', 'postmaster', 'bounce', 'daemon',
+      'masscomm', 'listserv', 'majordomo', 'mailman',
     ]
-    const isAutoSender = autoSenderPatterns.some(p => senderEmail.toLowerCase().includes(p))
-
-    // Detect auto-reply / OOO by subject or body content
-    const subjectLowerCheck = email.subject.toLowerCase()
-    const bodyLowerCheck = email.body.toLowerCase()
-    const autoReplyIndicators = [
-      'auto-reply', 'autoreply', 'automatic reply', 'out of office',
-      'on vacation', 'away from office', 'i am currently out',
-      'auto generated', 'auto-generated', 'do not reply to this',
-      'this is an automated', 'automatically generated',
-      'delivery status', 'delivery failure', 'undeliverable',
-      'mail delivery', 'returned mail', 'ndrreason', 'dsn',
-      'please do not reply', 'do not reply directly',
-      'this email was sent to', 'you are receiving this',
-      // Forwarding / redirect requests — these are system-generated "please contact X instead"
-      'please contact', 'please reach out to', 'kindly contact',
-      'please send your email to', 'please write to',
-    ]
-    const isAutoReplyContent = autoReplyIndicators.some(
-      ind => subjectLowerCheck.includes(ind) || bodyLowerCheck.includes(ind)
-    )
-
-    if (isAutoSender || isAutoReplyContent || senderEmail === 'aviral.india.udaipur@gmail.com') {
+    if (
+      hardSkipPatterns.some(p => senderEmail.toLowerCase().includes(p)) ||
+      senderEmail === 'aviral.india.udaipur@gmail.com'
+    ) {
       await markAsRead(email.id)
+      skipped++
       continue
     }
 
@@ -87,121 +98,120 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (recentReply) {
-      // Already replied to this address recently — mark read, skip
       await markAsRead(email.id)
+      skipped++
       continue
     }
 
-    // Check if this sender is an outreach target
+    // Look up outreach target
     const { data: target } = await supabase
       .from('outreach_targets')
       .select('*')
       .eq('contact_email', senderEmail)
       .single()
 
-    // If they're redirecting to a different contact, alert owner and don't reply
-    const redirectIndicators = [
-      'please contact', 'please reach out to', 'kindly contact',
-      'please write to', 'please email', 'right person', 'correct person',
-      'forward this', 'forwarding your', 'passed on to',
-    ]
-    const isRedirect = redirectIndicators.some(ind => bodyLowerCheck.includes(ind))
-    if (isRedirect) {
-      await alertOwner(
-        target?.company_name || senderEmail,
+    // Use AI to classify what kind of email this actually is
+    const classification = await classifyInboundEmail(
+      email.subject,
+      email.body.substring(0, 1200),
+      target?.company_name
+    )
+
+    // --- GENUINE_INTEREST: real human showing interest ---
+    if (classification.type === 'GENUINE_INTEREST') {
+      if (target) {
+        await supabase
+          .from('outreach_targets')
+          .update({ status: 'replied' })
+          .eq('id', target.id)
+
+        await supabase.from('email_log').insert({
+          target_id: target.id,
+          direction: 'inbound',
+          email_type: 'auto_reply',
+          to_email: 'aviral.india.udaipur@gmail.com',
+          from_email: senderEmail,
+          subject: email.subject,
+          body: email.body.substring(0, 2000),
+          gmail_message_id: email.id,
+          status: 'received',
+        })
+      }
+
+      const reply = await composeReplyEmail(senderName, email.subject, email.body.substring(0, 1000))
+      const result = await sendReply(email.id, email.id, senderEmail, reply.subject, reply.body)
+
+      if (result.success) {
+        await supabase.from('email_log').insert({
+          target_id: target?.id || null,
+          direction: 'outbound',
+          email_type: 'auto_reply',
+          to_email: senderEmail,
+          from_email: 'aviral.india.udaipur@gmail.com',
+          subject: reply.subject,
+          body: reply.body,
+          status: 'sent',
+        })
+      }
+
+      // Alert both Avi and Ratnesh — genuine lead
+      await alertGenuineLead(
+        target?.company_name || '',
         senderEmail,
         email.subject,
-        `They may be redirecting you to a different contact. Read carefully:\n\n${email.body.substring(0, 500)}`
+        email.body.substring(0, 500),
+        result.success
       )
+
       await markAsRead(email.id)
+      processed++
       continue
     }
 
-    // Check for STOP / unsubscribe
-    const bodyLower = email.body.toLowerCase().trim()
-    const isUnsubscribe =
-      bodyLower === 'stop' ||
-      bodyLower.startsWith('stop') ||
-      bodyLower.includes('unsubscribe') ||
-      bodyLower.includes('remove me') ||
-      bodyLower.includes('not interested') ||
-      subjectLowerCheck === 'stop'
+    // --- NOT_INTERESTED / STOP: respect opt-out ---
+    if (classification.type === 'NOT_INTERESTED') {
+      if (target) {
+        await supabase
+          .from('outreach_targets')
+          .update({ status: 'not_interested', notes: 'Declined via email' })
+          .eq('id', target.id)
 
-    if (isUnsubscribe && target) {
-      // Respect opt-out — mark as not_interested, don't reply
-      await supabase
-        .from('outreach_targets')
-        .update({ status: 'not_interested', notes: 'Opted out via email' })
-        .eq('id', target.id)
-
-      await supabase.from('email_log').insert({
-        target_id: target.id,
-        direction: 'inbound',
-        email_type: 'auto_reply',
-        to_email: 'aviral.india.udaipur@gmail.com',
-        from_email: senderEmail,
-        subject: email.subject,
-        body: 'UNSUBSCRIBED',
-        gmail_message_id: email.id,
-        status: 'sent',
-      })
-
+        await supabase.from('email_log').insert({
+          target_id: target.id,
+          direction: 'inbound',
+          email_type: 'auto_reply',
+          to_email: 'aviral.india.udaipur@gmail.com',
+          from_email: senderEmail,
+          subject: email.subject,
+          body: email.body.substring(0, 500),
+          gmail_message_id: email.id,
+          status: 'received',
+        })
+      }
       await markAsRead(email.id)
       unsubscribed++
       continue
     }
 
-    if (target) {
-      // Update target status to replied
-      await supabase
-        .from('outreach_targets')
-        .update({ status: 'replied' })
-        .eq('id', target.id)
-
-      // Log the inbound email
-      await supabase.from('email_log').insert({
-        target_id: target.id,
-        direction: 'inbound',
-        email_type: 'auto_reply',
-        to_email: 'aviral.india.udaipur@gmail.com',
-        from_email: senderEmail,
-        subject: email.subject,
-        body: email.body.substring(0, 2000),
-        gmail_message_id: email.id,
-        status: 'sent',
-      })
-    }
-
-    // Compose AI reply
-    const reply = await composeReplyEmail(senderName, email.subject, email.body.substring(0, 1000))
-
-    // Send reply
-    const result = await sendReply(email.id, email.id, senderEmail, reply.subject, reply.body)
-
-    if (result.success) {
-      await supabase.from('email_log').insert({
-        target_id: target?.id || null,
-        direction: 'outbound',
-        email_type: 'auto_reply',
-        to_email: senderEmail,
-        from_email: 'aviral.india.udaipur@gmail.com',
-        subject: reply.subject,
-        body: reply.body,
-        status: 'sent',
-      })
-
-      // Notify owner so they can personally follow up if the lead is warm
-      await alertOwner(
-        target?.company_name || '',
+    // --- REDIRECT: they're pointing to a different contact ---
+    if (classification.type === 'REDIRECT') {
+      await alertRedirect(
+        target?.company_name || senderEmail,
         senderEmail,
         email.subject,
-        email.body.substring(0, 400)
+        email.body.substring(0, 600),
+        classification.redirect_contact || null
       )
+      await markAsRead(email.id)
+      skipped++
+      continue
     }
 
+    // --- AUTO_ACK / OOO: "we'll get back to you", out of office, etc. ---
+    // Just mark read, no reply, no alert — not worth anyone's time
     await markAsRead(email.id)
-    processed++
+    skipped++
   }
 
-  return NextResponse.json({ processed, unsubscribed, total: emails.length })
+  return NextResponse.json({ processed, unsubscribed, skipped, total: emails.length })
 }
