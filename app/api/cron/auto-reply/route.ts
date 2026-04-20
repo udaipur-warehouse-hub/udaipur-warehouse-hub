@@ -59,7 +59,12 @@ export async function POST(request: NextRequest) {
       'auto generated', 'auto-generated', 'do not reply to this',
       'this is an automated', 'automatically generated',
       'delivery status', 'delivery failure', 'undeliverable',
-      'mail delivery', 'returned mail',
+      'mail delivery', 'returned mail', 'ndrreason', 'dsn',
+      'please do not reply', 'do not reply directly',
+      'this email was sent to', 'you are receiving this',
+      // Forwarding / redirect requests — these are system-generated "please contact X instead"
+      'please contact', 'please reach out to', 'kindly contact',
+      'please send your email to', 'please write to',
     ]
     const isAutoReplyContent = autoReplyIndicators.some(
       ind => subjectLowerCheck.includes(ind) || bodyLowerCheck.includes(ind)
@@ -93,6 +98,24 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('contact_email', senderEmail)
       .single()
+
+    // If they're redirecting to a different contact, alert owner and don't reply
+    const redirectIndicators = [
+      'please contact', 'please reach out to', 'kindly contact',
+      'please write to', 'please email', 'right person', 'correct person',
+      'forward this', 'forwarding your', 'passed on to',
+    ]
+    const isRedirect = redirectIndicators.some(ind => bodyLowerCheck.includes(ind))
+    if (isRedirect) {
+      await alertOwner(
+        target?.company_name || senderEmail,
+        senderEmail,
+        email.subject,
+        `They may be redirecting you to a different contact. Read carefully:\n\n${email.body.substring(0, 500)}`
+      )
+      await markAsRead(email.id)
+      continue
+    }
 
     // Check for STOP / unsubscribe
     const bodyLower = email.body.toLowerCase().trim()
