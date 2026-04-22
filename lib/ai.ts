@@ -49,10 +49,10 @@ const WAREHOUSE_CONTEXT = `You are Avi, a young businessman from Udaipur who own
 
 WAREHOUSE FACTS (use only what's relevant to the recipient's industry):
 - Size: 15,000 sq ft, ground floor (no ramps, trucks load directly)
-- Address: Gukhar Magri, NH-48, Udaipur, Rajasthan 313001
-- Location: Directly on National Highway 48 — the Delhi–Mumbai highway (Golden Quadrilateral). This is one of India's busiest freight corridors.
-- Road reach from here: Jaipur ~4 hrs, Ahmedabad ~3.5 hrs, Delhi ~8 hrs, Mumbai ~10 hrs — all via highway, no city traffic
-- Why this matters: Companies distributing into Rajasthan/Gujarat usually warehouse in Jaipur or Ahmedabad. Udaipur on NH-48 cuts delivery time to South Rajasthan (Udaipur, Kota, Chittorgarh, Bhilwara) by 2-3 hours compared to shipping from Jaipur.
+- Address: Gukhar Magri, Udaipur, Rajasthan 313001
+- Location: Inside Udaipur city, on the main highway that connects to 100ft Road. Right next to Kaladwas Industrial Area. The highway has a dedicated cut with 2 underbridges — trucks enter and exit without touching city traffic or any signal. This is on NH-48 (Delhi–Mumbai highway) but describe it as above, not as "NH-48" since locals understand landmarks better than highway numbers.
+- Road reach from here: Jaipur ~4 hrs, Ahmedabad ~3.5 hrs, Delhi ~8 hrs, Mumbai ~10 hrs — all via highway
+- Why this matters: Companies distributing into Rajasthan/Gujarat usually warehouse in Jaipur or Ahmedabad. This location cuts delivery time to South Rajasthan (Udaipur, Kota, Chittorgarh, Bhilwara) by 2-3 hours compared to shipping from Jaipur. And since it's inside Udaipur city near a proper industrial area, local deliveries are fast too.
 - Power backup: 24/7 power — no disruption during outages
 - Loading docks: handles medium and large trucks
 - Flexible lease: short-term or long-term, can be negotiated
@@ -118,18 +118,19 @@ ${industryHint}
 
 Sign off: "${signoff}" / "${sender}" / "Aviral India"
 
-STRUCTURE TO FOLLOW (like this example):
-Para 1: One sentence intro — reach out about the warehouse and say why it's relevant to their specific business/industry.
-Para 2: Quick details — "15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located at Gukhar Magri on NH-48 — the Delhi–Mumbai highway. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours." Then add the industry-specific use case angle (e.g. for quick commerce: works well as a mother hub; for paints: covers South Rajasthan dealer network; etc.)
-Para 3: One line on terms — "Lease terms are flexible — short or long term. Happy to discuss based on what you need."
-Para 4: Clear CTA — "Would it be worth a brief call this week?"
+STRUCTURE TO FOLLOW:
+Para 1: One sentence intro — why you're reaching out and why it's relevant to their specific business.
+Para 2: Quick details — "15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located inside Udaipur city, on the main highway connecting to 100ft Road — right next to Kaladwas Industrial Area. The highway has a dedicated cut with 2 underbridges, so trucks come in and out without touching any city traffic. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours." Then add the specific industry use case angle.
+Para 3: "Lease terms are flexible — short or long term. Happy to discuss based on what you need."
+Para 4: "Would it be worth a brief call this week?"
 
 Rules:
-- 130–180 words — enough detail that they understand the value without needing to ask follow-up questions
-- Include the full address (Gukhar Magri, NH-48, Udaipur, Rajasthan 313001) once
-- Use concrete numbers: reach times, sq ft, floor details
+- 150–200 words — give them enough to make a decision, not just enough to be curious
+- NEVER say "NH-48" — always describe location using landmarks (100ft Road, Kaladwas Industrial Area, 2 underbridges)
+- Include the address (Gukhar Magri, Udaipur, Rajasthan 313001) once
+- Use concrete numbers everywhere: sq ft, reach times, number of underbridges
 - Professional but human — not corporate fluff
-- Subject line should be specific, not generic (mention their region or use case)
+- Subject line must mention their specific industry or region, not generic warehouse talk
 
 Respond in this exact JSON format, nothing else:
 {"subject": "specific subject line", "body": "email body in HTML with <p> tags"}`
@@ -142,8 +143,8 @@ Respond in this exact JSON format, nothing else:
     }
   } catch {}
   return {
-    subject: `NH-48 warehouse in Udaipur — for your Rajasthan ${industry.toLowerCase()} operations`,
-    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I wanted to reach out about a warehouse we have available in Udaipur that may be useful for ${companyName}'s ${industry.toLowerCase()} operations in Rajasthan.</p><p>Quick details: 15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located at Gukhar Magri on NH-48 — the Delhi–Mumbai highway. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours, and you can cover all of South Rajasthan (Udaipur, Bhilwara, Kota, Chittorgarh) within 3 hours.</p><p>Lease terms are flexible — short or long term. Happy to discuss based on what you need.</p><p>Would it be worth a brief call this week?</p><p>${signoff}<br>${sender}<br>Aviral India</p>`,
+    subject: `Warehouse space in Udaipur — ${industry} operations in Rajasthan`,
+    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I wanted to reach out about a warehouse we have available in Udaipur that may be relevant for ${companyName}'s ${industry.toLowerCase()} operations in Rajasthan.</p><p>Quick details: 15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located inside Udaipur city at Gukhar Magri, on the main highway connecting to 100ft Road — right next to Kaladwas Industrial Area. The highway has a dedicated cut with 2 underbridges, so trucks come in and out without touching any city traffic or signals. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours, and all of South Rajasthan — Bhilwara, Kota, Chittorgarh — within 3 hours.</p><p>Lease terms are flexible — short or long term. Happy to discuss based on what you need.</p><p>Would it be worth a brief call this week?</p><p>${signoff}<br>${sender}<br>Aviral India</p>`,
   }
 }
 
