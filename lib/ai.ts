@@ -118,15 +118,21 @@ ${industryHint}
 
 Sign off: "${signoff}" / "${sender}" / "Aviral India"
 
+STRUCTURE TO FOLLOW (like this example):
+Para 1: One sentence intro — reach out about the warehouse and say why it's relevant to their specific business/industry.
+Para 2: Quick details — "15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located at Gukhar Magri on NH-48 — the Delhi–Mumbai highway. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours." Then add the industry-specific use case angle (e.g. for quick commerce: works well as a mother hub; for paints: covers South Rajasthan dealer network; etc.)
+Para 3: One line on terms — "Lease terms are flexible — short or long term. Happy to discuss based on what you need."
+Para 4: Clear CTA — "Would it be worth a brief call this week?"
+
 Rules:
-- 80–120 words only
-- Include the address (Gukhar Magri, NH-48, Udaipur, Rajasthan 313001) once so they can look it up
-- Open with something relevant to their business, not a generic intro
-- One clear point. One soft ask at the end.
-- Real person tone — not corporate
+- 130–180 words — enough detail that they understand the value without needing to ask follow-up questions
+- Include the full address (Gukhar Magri, NH-48, Udaipur, Rajasthan 313001) once
+- Use concrete numbers: reach times, sq ft, floor details
+- Professional but human — not corporate fluff
+- Subject line should be specific, not generic (mention their region or use case)
 
 Respond in this exact JSON format, nothing else:
-{"subject": "short natural subject line", "body": "email body in HTML with <p> tags"}`
+{"subject": "specific subject line", "body": "email body in HTML with <p> tags"}`
 
   const response = await callGroq(WAREHOUSE_CONTEXT, prompt)
   try {
@@ -136,8 +142,8 @@ Respond in this exact JSON format, nothing else:
     }
   } catch {}
   return {
-    subject: `warehouse space in Udaipur — on NH-48`,
-    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I own a 15,000 sq ft ground-floor warehouse at Gukhar Magri, NH-48, Udaipur, Rajasthan 313001 — directly on the Delhi–Mumbai highway. From here you can cover Jaipur in 4 hours and Ahmedabad in 3.5, which makes it a useful Rajasthan distribution base without routing through Jaipur.</p><p>Wondering if ${companyName} could use this for ${industry.toLowerCase()} operations in the region. Happy to share details if it's worth a look.</p><p>${signoff}<br>${sender}<br>Aviral India</p>`,
+    subject: `NH-48 warehouse in Udaipur — for your Rajasthan ${industry.toLowerCase()} operations`,
+    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I wanted to reach out about a warehouse we have available in Udaipur that may be useful for ${companyName}'s ${industry.toLowerCase()} operations in Rajasthan.</p><p>Quick details: 15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located at Gukhar Magri on NH-48 — the Delhi–Mumbai highway. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours, and you can cover all of South Rajasthan (Udaipur, Bhilwara, Kota, Chittorgarh) within 3 hours.</p><p>Lease terms are flexible — short or long term. Happy to discuss based on what you need.</p><p>Would it be worth a brief call this week?</p><p>${signoff}<br>${sender}<br>Aviral India</p>`,
   }
 }
 
