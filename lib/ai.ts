@@ -132,8 +132,20 @@ Rules:
 - Professional but human — not corporate fluff
 - Subject line must mention their specific industry or region, not generic warehouse talk
 
+EMAIL HTML FORMAT — wrap the body exactly like this:
+<div style="font-family: Arial, sans-serif; font-size: 15px; color: #1a1a1a; line-height: 1.7; max-width: 600px;">
+  <p style="margin: 0 0 16px 0;">Hi [Name],</p>
+  <p style="margin: 0 0 16px 0;">[Para 1 — intro]</p>
+  <p style="margin: 0 0 16px 0;">[Para 2 — details + industry angle]</p>
+  <p style="margin: 0 0 16px 0;">[Para 3 — lease terms]</p>
+  <p style="margin: 0 0 24px 0;">[Para 4 — CTA]</p>
+  <p style="margin: 0; color: #1a1a1a;">Best regards,<br><strong>Avi Jain</strong><br>Aviral India<br><span style="color: #666; font-size: 13px;">Gukhar Magri, Udaipur, Rajasthan 313001</span></p>
+  <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+  <p style="margin: 0; font-size: 11px; color: #999;">You received this email because we thought your company might benefit from warehouse space in Udaipur. To stop receiving emails, reply with STOP.</p>
+</div>
+
 Respond in this exact JSON format, nothing else:
-{"subject": "specific subject line", "body": "email body in HTML with <p> tags"}`
+{"subject": "specific subject line", "body": "full HTML email as described above"}`
 
   const response = await callGroq(WAREHOUSE_CONTEXT, prompt)
   try {
@@ -144,7 +156,16 @@ Respond in this exact JSON format, nothing else:
   } catch {}
   return {
     subject: `Warehouse space in Udaipur — ${industry} operations in Rajasthan`,
-    body: `<p>Hi${contactName ? ` ${contactName}` : ''},</p><p>I wanted to reach out about a warehouse we have available in Udaipur that may be relevant for ${companyName}'s ${industry.toLowerCase()} operations in Rajasthan.</p><p>Quick details: 15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located inside Udaipur city at Gukhar Magri, on the main highway connecting to 100ft Road — right next to Kaladwas Industrial Area. The highway has a dedicated cut with 2 underbridges, so trucks come in and out without touching any city traffic or signals. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours, and all of South Rajasthan — Bhilwara, Kota, Chittorgarh — within 3 hours.</p><p>Lease terms are flexible — short or long term. Happy to discuss based on what you need.</p><p>Would it be worth a brief call this week?</p><p>${signoff}<br>${sender}<br>Aviral India</p>`,
+    body: `<div style="font-family: Arial, sans-serif; font-size: 15px; color: #1a1a1a; line-height: 1.7; max-width: 600px;">
+  <p style="margin: 0 0 16px 0;">Hi${contactName ? ` ${contactName}` : ''},</p>
+  <p style="margin: 0 0 16px 0;">I wanted to reach out about a warehouse we have available in Udaipur that may be relevant for ${companyName}'s ${industry.toLowerCase()} operations in Rajasthan.</p>
+  <p style="margin: 0 0 16px 0;">Quick details: 15,000 sq ft, ground floor with direct truck access (no ramps), 24/7 power backup. Located inside Udaipur city at Gukhar Magri, on the main highway connecting to 100ft Road — right next to Kaladwas Industrial Area. The highway has a dedicated cut with 2 underbridges, so trucks come in and out without touching any city traffic or signals. From here: Jaipur in 4 hours, Ahmedabad in 3.5 hours, and all of South Rajasthan — Bhilwara, Kota, Chittorgarh — within 3 hours.</p>
+  <p style="margin: 0 0 16px 0;">Lease terms are flexible — short or long term. Happy to discuss based on what you need.</p>
+  <p style="margin: 0 0 24px 0;">Would it be worth a brief call this week?</p>
+  <p style="margin: 0; color: #1a1a1a;">Best regards,<br><strong>Avi Jain</strong><br>Aviral India<br><span style="color: #666; font-size: 13px;">Gukhar Magri, Udaipur, Rajasthan 313001</span></p>
+  <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+  <p style="margin: 0; font-size: 11px; color: #999;">You received this email because we thought your company might benefit from warehouse space in Udaipur. To stop receiving emails, reply with STOP.</p>
+</div>`,
   }
 }
 
