@@ -72,11 +72,43 @@ export async function POST(request: NextRequest) {
     const senderEmail = emailMatch ? emailMatch[1] : email.from
     const senderName = email.from.replace(/<.+>/, '').trim() || senderEmail
 
-    // Hard skip — definitely system/bot senders, never worth processing
-    const hardSkipPatterns = [
-      'mailer-daemon', 'postmaster', 'bounce', 'daemon',
-      'masscomm', 'listserv', 'majordomo', 'mailman',
-    ]
+    // Detect bounce / delivery failure — extract the failed address and blacklist it
+    const isBounce =
+      senderEmail.toLowerCase().includes('mailer-daemon') ||
+      senderEmail.toLowerCase().includes('postmaster') ||
+      senderEmail.toLowerCase().includes('bounce') ||
+      senderEmail.toLowerCase().includes('daemon') ||
+      email.subject.toLowerCase().includes('address not found') ||
+      email.subject.toLowerCase().includes('delivery status notification') ||
+      email.subject.toLowerCase().includes('undeliverable') ||
+      email.subject.toLowerCase().includes('mail delivery failed') ||
+      email.subject.toLowerCase().includes('returned mail')
+
+    if (isBounce) {
+      // Extract the failed recipient email from the bounce body
+      const failedEmailMatch = email.body.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g)
+      // Filter out the sender's own address and system addresses
+      const failedEmail = failedEmailMatch?.find(e =>
+        e !== 'aviral.india.udaipur@gmail.com' &&
+        !e.includes('google') &&
+        !e.includes('gstatic') &&
+        !e.includes('mailer-daemon')
+      )
+
+      if (failedEmail) {
+        await supabase
+          .from('outreach_targets')
+          .update({ status: 'not_interested', notes: 'Email bounced — address not found' })
+          .eq('contact_email', failedEmail)
+      }
+
+      await markAsRead(email.id)
+      skipped++
+      continue
+    }
+
+    // Hard skip — other system/bot senders
+    const hardSkipPatterns = ['masscomm', 'listserv', 'majordomo', 'mailman']
     if (
       hardSkipPatterns.some(p => senderEmail.toLowerCase().includes(p)) ||
       senderEmail === 'aviral.india.udaipur@gmail.com'
