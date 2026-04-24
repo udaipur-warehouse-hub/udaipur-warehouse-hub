@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { MessageSquare, UserCheck, Handshake, CheckCircle, XCircle, TrendingUp, Send, MailOpen, Clock, BarChart2 } from 'lucide-react'
+import { MessageSquare, UserCheck, Handshake, CheckCircle, XCircle, TrendingUp, Send, MailOpen, BarChart2 } from 'lucide-react'
 import Card, { CardContent } from '@/components/ui/card'
 import type { DashboardStats, Inquiry } from '@/types'
 import Badge from '@/components/ui/badge'

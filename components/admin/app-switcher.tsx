@@ -7,7 +7,7 @@ const apps = [
   {
     name: 'Advocate Hub',
     icon: Scale,
-    url: 'https://advocate-diary-hub.vercel.app/auth/auto-login?key=94c1a5172f3a7c1c7e766d1970db46fa41d3dbeb32cdcab7&redirect=/diary',
+    url: 'https://advocate-diary-hub-orpin.vercel.app/auth/auto-login?key=94c1a5172f3a7c1c7e766d1970db46fa41d3dbeb32cdcab7&redirect=/diary',
     color: 'text-blue-400',
     bg: 'bg-blue-500/10',
     current: false,
@@ -15,7 +15,7 @@ const apps = [
   {
     name: 'Sports Club',
     icon: Trophy,
-    url: 'https://udaipursportsclub.in/auth/auto-login?key=94c1a5172f3a7c1c7e766d1970db46fa41d3dbeb32cdcab7&redirect=/dashboard',
+    url: 'https://usc-platform-beta.vercel.app/auth/auto-login?key=94c1a5172f3a7c1c7e766d1970db46fa41d3dbeb32cdcab7&redirect=/dashboard',
     color: 'text-emerald-400',
     bg: 'bg-emerald-500/10',
     current: false,
@@ -23,7 +23,7 @@ const apps = [
   {
     name: 'Metro ERP',
     icon: Building2,
-    url: 'https://metro-erp.vercel.app/auth/auto-login?key=94c1a5172f3a7c1c7e766d1970db46fa41d3dbeb32cdcab7&redirect=/dashboard',
+    url: 'https://metro-erp.vercel.app/api/auth/auto-login?key=94c1a5172f3a7c1c7e766d1970db46fa41d3dbeb32cdcab7&redirect=/dashboard',
     color: 'text-purple-400',
     bg: 'bg-purple-500/10',
     current: false,

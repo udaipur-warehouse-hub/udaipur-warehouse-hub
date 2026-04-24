@@ -26,7 +26,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to generate login' }, { status: 500 })
   }
 
-  const callbackUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/verify?token=${data.properties.hashed_token}&type=magiclink&redirect_to=${encodeURIComponent((process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://udaipur-warehouse-hub.vercel.app') + redirect)}`
+  const baseUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://udaipur-warehouse-hub-sandy.vercel.app').trim()
+  const callbackUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/verify?token=${data.properties.hashed_token}&type=magiclink&redirect_to=${encodeURIComponent(baseUrl + redirect)}`
 
   return NextResponse.redirect(callbackUrl)
 }

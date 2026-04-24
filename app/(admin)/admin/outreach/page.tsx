@@ -1,12 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Send, Mail, Building2, Trash2 } from 'lucide-react'
+import { Plus, Send, Mail, Building2, Trash2, Clock, RefreshCw } from 'lucide-react'
 import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Card, { CardContent } from '@/components/ui/card'
 import type { OutreachTarget } from '@/types/outreach'
+import { formatDistanceToNow } from 'date-fns'
+
+interface EmailLog {
+  id: string
+  company_name: string
+  to_email: string
+  subject: string
+  status: string
+  email_type: string
+  created_at: string
+}
 
 const industries = [
   'Paints & Coatings', 'Building Materials', 'Marble & Granite',
@@ -17,23 +28,48 @@ const industries = [
 
 export default function OutreachPage() {
   const [targets, setTargets] = useState<OutreachTarget[]>([])
+  const [recentLogs, setRecentLogs] = useState<EmailLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
   const [showForm, setShowForm] = useState(false)
   const [sending, setSending] = useState(false)
   const [form, setForm] = useState({
     company_name: '', industry: '', contact_name: '', contact_email: '', city: '', notes: '',
   })
 
-  useEffect(() => {
-    fetchTargets()
+  const fetchData = useCallback(async () => {
+    const supabase = createClient()
+    const [targetsRes, logsRes] = await Promise.all([
+      fetch('/api/targets'),
+      supabase
+        .from('email_log')
+        .select('id, to_email, subject, status, email_type, created_at, target_id, outreach_targets(company_name)')
+        .in('email_type', ['cold_outreach', 'follow_up'])
+        .order('created_at', { ascending: false })
+        .limit(10),
+    ])
+    if (targetsRes.ok) setTargets(await targetsRes.json())
+    if (logsRes.data) {
+      setRecentLogs(logsRes.data.map((l: any) => ({
+        id: l.id,
+        company_name: l.outreach_targets?.company_name || l.to_email,
+        to_email: l.to_email,
+        subject: l.subject,
+        status: l.status,
+        email_type: l.email_type,
+        created_at: l.created_at,
+      })))
+    }
+    setLastRefreshed(new Date())
+    setLoading(false)
   }, [])
 
-  async function fetchTargets() {
-    setLoading(true)
-    const res = await fetch('/api/targets')
-    if (res.ok) setTargets(await res.json())
-    setLoading(false)
-  }
+  useEffect(() => {
+    fetchData()
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchData, 60000)
+    return () => clearInterval(interval)
+  }, [fetchData])
 
   async function addTarget(e: React.FormEvent) {
     e.preventDefault()
@@ -83,16 +119,23 @@ export default function OutreachPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Outreach Autopilot</h1>
-          <p className="text-slate-400 text-sm mt-1">Add target companies, AI sends personalized emails</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Emails go out Mon–Fri at 9 AM IST · Daily limit: 2 emails (week 1), increases weekly
+            <span className="ml-3 text-slate-600">· Refreshed {formatDistanceToNow(lastRefreshed, { addSuffix: true })}</span>
+          </p>
         </div>
         <div className="flex gap-3">
+          <Button variant="outline" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
           <Button variant="outline" onClick={() => setShowForm(!showForm)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Target
           </Button>
           <Button onClick={runOutreach} loading={sending}>
             <Send className="w-4 h-4 mr-2" />
-            Run Outreach Now
+            Send Now
           </Button>
         </div>
       </div>
@@ -168,6 +211,32 @@ export default function OutreachPage() {
             </div>
             <Button type="submit" size="sm">Add Target</Button>
           </form>
+        </Card>
+      )}
+
+      {/* Recent Activity */}
+      {recentLogs.length > 0 && (
+        <Card>
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-4 h-4 text-amber-400" />
+            <h2 className="text-base font-semibold text-white">Recent Emails Sent</h2>
+          </div>
+          <div className="space-y-2">
+            {recentLogs.map((log) => (
+              <div key={log.id} className="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-medium truncate">{log.company_name}</p>
+                  <p className="text-slate-500 text-xs truncate">{log.subject}</p>
+                </div>
+                <div className="flex items-center gap-3 ml-4 shrink-0">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${log.status === 'sent' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                    {log.email_type === 'follow_up' ? 'follow-up' : 'outreach'} · {log.status}
+                  </span>
+                  <span className="text-xs text-slate-500">{formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
 
