@@ -50,6 +50,7 @@ export default function OutreachPage() {
     ])
     if (targetsRes.ok) setTargets(await targetsRes.json())
     if (logsRes.data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setRecentLogs(logsRes.data.map((l: any) => ({
         id: l.id,
         company_name: l.outreach_targets?.company_name || l.to_email,
@@ -81,7 +82,7 @@ export default function OutreachPage() {
     if (res.ok) {
       setForm({ company_name: '', industry: '', contact_name: '', contact_email: '', city: '', notes: '' })
       setShowForm(false)
-      fetchTargets()
+      fetchData()
     }
   }
 
@@ -95,7 +96,7 @@ export default function OutreachPage() {
     const data = await res.json()
     alert(`Outreach complete: ${data.sent || 0} emails sent`)
     setSending(false)
-    fetchTargets()
+    fetchData()
   }
 
   async function deleteTarget(id: string) {
