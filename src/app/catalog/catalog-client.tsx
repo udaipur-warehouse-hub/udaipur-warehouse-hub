@@ -87,8 +87,10 @@ export function CatalogClient() {
         </div>
       )}
 
-      {/* Desktop / tablet: Excel-style grid, one row per SKU */}
-      <div className="hidden sm:block overflow-x-auto">
+      {/* Desktop / tablet: Excel-style grid, one row per SKU.
+          overflow-x (not overflow) so the Type/Company search dropdowns
+          aren't clipped vertically while the wide table still scrolls sideways. */}
+      <div className="hidden sm:block overflow-x-auto overflow-y-visible">
         <table className="w-full text-sm min-w-[1100px]">
           <thead className="bg-background text-muted text-left">
             <tr>
