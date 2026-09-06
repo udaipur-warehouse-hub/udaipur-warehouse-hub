@@ -15,6 +15,27 @@ export type Product = {
   is_active: boolean;
 };
 
+export type RetailVendor = {
+  id: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  is_active: boolean;
+  created_at: string;
+  balance: number;
+  last_activity: string | null;
+};
+
+export type VendorLedgerEntry = {
+  id: string;
+  vendor_id: string;
+  entry_type: "credit_sale" | "payment_received";
+  amount: number;
+  note: string | null;
+  entry_date: string;
+  created_at: string;
+};
+
 export type CartLine = {
   product_id: string | null;
   sku_code: string;

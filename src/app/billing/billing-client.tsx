@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { CartLine, Product } from "@/lib/types";
 import { ItemSearch } from "./item-search";
 import { sellingUnitLabel } from "@/lib/selling-unit";
+import { Panel } from "@/components/panel";
 
 type BillType = "gst" | "non_gst";
 type PaymentMethod = "cash" | "card" | "online";
@@ -36,7 +37,6 @@ export function BillingClient() {
           unit_price: p.selling_price,
           gst_rate: p.gst_rate,
         },
-        ...[],
       ];
     });
   }
@@ -90,11 +90,18 @@ export function BillingClient() {
   }
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-4">
-        <ItemSearch onPick={addToCart} />
+    <div className="grid lg:grid-cols-3 gap-5">
+      <div className="lg:col-span-2 space-y-5">
+        <Panel step={1} title="Add items" subtitle="Search by name or SKU code">
+          <ItemSearch onPick={addToCart} bare />
+        </Panel>
 
-        <div className="rounded-2xl border border-border bg-surface overflow-hidden">
+        <Panel
+          step={2}
+          title="Items in this bill"
+          subtitle={cart.length ? `${cart.length} item${cart.length === 1 ? "" : "s"}` : undefined}
+          bodyClassName="p-0"
+        >
           <table className="w-full text-sm">
             <thead className="bg-background text-muted text-left">
               <tr>
@@ -109,7 +116,7 @@ export function BillingClient() {
               {cart.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-3 py-8 text-center text-muted">
-                    Search and add items above to start the bill.
+                    No items yet — add some above.
                   </td>
                 </tr>
               )}
@@ -149,67 +156,75 @@ export function BillingClient() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Panel>
       </div>
 
-      <div className="space-y-4">
-        <div className="rounded-2xl border border-border bg-surface p-4 space-y-4">
-          <div>
-            <span className="block text-xs font-medium text-muted mb-1">Bill type</span>
-            <div className="flex gap-2">
-              <ToggleButton active={billType === "gst"} onClick={() => setBillType("gst")}>
-                With GST bill
-              </ToggleButton>
-              <ToggleButton active={billType === "non_gst"} onClick={() => setBillType("non_gst")}>
-                Without bill
-              </ToggleButton>
-            </div>
-          </div>
-
-          <div>
-            <span className="block text-xs font-medium text-muted mb-1">Payment method</span>
-            <div className="flex gap-2 flex-wrap">
-              {(["cash", "card", "online"] as PaymentMethod[]).map((m) => (
-                <ToggleButton key={m} active={paymentMethod === m} onClick={() => setPaymentMethod(m)}>
-                  {m[0].toUpperCase() + m.slice(1)}
+      <div className="space-y-5">
+        <Panel step={3} title="Bill type & payment">
+          <div className="space-y-4">
+            <div>
+              <span className="block text-xs font-medium text-muted mb-1.5">Bill type</span>
+              <div className="flex gap-2">
+                <ToggleButton active={billType === "gst"} onClick={() => setBillType("gst")}>
+                  With GST bill
                 </ToggleButton>
-              ))}
+                <ToggleButton active={billType === "non_gst"} onClick={() => setBillType("non_gst")}>
+                  Without bill
+                </ToggleButton>
+              </div>
+            </div>
+
+            <div>
+              <span className="block text-xs font-medium text-muted mb-1.5">Payment method</span>
+              <div className="flex gap-2 flex-wrap">
+                {(["cash", "card", "online"] as PaymentMethod[]).map((m) => (
+                  <ToggleButton key={m} active={paymentMethod === m} onClick={() => setPaymentMethod(m)}>
+                    {m[0].toUpperCase() + m.slice(1)}
+                  </ToggleButton>
+                ))}
+              </div>
             </div>
           </div>
+        </Panel>
 
-          <label className="block">
-            <span className="block text-xs font-medium text-muted mb-1">Customer name (optional)</span>
-            <input className="input" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-          </label>
-          <label className="block">
-            <span className="block text-xs font-medium text-muted mb-1">Phone (optional)</span>
-            <input className="input" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
-          </label>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-surface p-4 space-y-2 text-sm">
-          <Row label="Subtotal" value={subtotal} />
-          {billType === "gst" && <Row label="GST" value={gstAmount} />}
-          <div className="border-t border-border pt-2">
-            <Row label="Total" value={total} bold />
+        <Panel title="Customer details" subtitle="Optional">
+          <div className="space-y-3">
+            <label className="block">
+              <span className="block text-xs font-medium text-muted mb-1">Name</span>
+              <input className="input" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-muted mb-1">Phone</span>
+              <input className="input" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+            </label>
           </div>
-        </div>
+        </Panel>
 
-        {error && (
-          <div className="text-sm text-danger bg-danger/10 border border-danger/30 rounded-lg px-3 py-2">
-            {error}
+        <Panel step={4} title="Summary">
+          <div className="space-y-2 text-sm">
+            <Row label="Subtotal" value={subtotal} />
+            {billType === "gst" && <Row label="GST" value={gstAmount} />}
+            <div className="border-t border-border pt-2">
+              <Row label="Total" value={total} bold />
+            </div>
+
+            {error && (
+              <div className="text-sm text-danger bg-danger/10 border border-danger/30 rounded-lg px-3 py-2 mt-2">
+                {error}
+              </div>
+            )}
+
+            {/* Desktop: button sits here. Mobile: sticky bar below instead,
+                so it stays reachable on a long cart. */}
+            <button
+              onClick={completeSale}
+              disabled={submitting}
+              className="btn-primary w-full py-3 text-base hidden lg:block mt-2"
+            >
+              {submitting ? "Saving…" : "Complete sale & print bill"}
+            </button>
           </div>
-        )}
-
-        {/* Desktop: button sits in the sidebar. Mobile: it's in the sticky
-            bar below instead, so it stays reachable on a long cart. */}
-        <button
-          onClick={completeSale}
-          disabled={submitting}
-          className="btn-primary w-full py-3 text-base hidden lg:block"
-        >
-          {submitting ? "Saving…" : "Complete sale & print bill"}
-        </button>
+        </Panel>
       </div>
 
       {/* Mobile sticky checkout bar */}

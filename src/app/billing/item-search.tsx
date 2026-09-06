@@ -5,7 +5,7 @@ import type { Product } from "@/lib/types";
 import { ItemForm } from "../catalog/item-form";
 import { sellingUnitLabel } from "@/lib/selling-unit";
 
-export function ItemSearch({ onPick }: { onPick: (p: Product) => void }) {
+export function ItemSearch({ onPick, bare = false }: { onPick: (p: Product) => void; bare?: boolean }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [searched, setSearched] = useState(false);
@@ -34,7 +34,7 @@ export function ItemSearch({ onPick }: { onPick: (p: Product) => void }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4">
+    <div className={bare ? "" : "rounded-2xl border border-border bg-surface p-4"}>
       <input
         className="input"
         placeholder="Search item by name or SKU code…"

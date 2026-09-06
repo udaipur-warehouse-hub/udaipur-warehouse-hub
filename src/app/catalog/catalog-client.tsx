@@ -6,6 +6,7 @@ import { SkuRow } from "./sku-row";
 import { NewSkuRow } from "./new-sku-row";
 import { SkuCard } from "./sku-card";
 import { ItemForm } from "./item-form";
+import { Panel } from "@/components/panel";
 
 const COLUMNS = [
   "S.No.",
@@ -42,23 +43,29 @@ export function CatalogClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
+  const countLabel = q
+    ? `${products.length} match${products.length === 1 ? "" : "es"}`
+    : `${products.length}${products.length === 300 ? "+" : ""} item${products.length === 1 ? "" : "s"}`;
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-4">
+    <Panel
+      title="Item Catalog"
+      subtitle={countLabel}
+      bodyClassName="p-0"
+      actions={
+        <button className="btn-primary sm:hidden" onClick={() => setShowMobileAdd(true)}>
+          + Add SKU
+        </button>
+      }
+    >
+      {/* Search toolbar strip */}
+      <div className="px-4 sm:px-5 py-3 border-b border-border">
         <input
           className="input max-w-xs"
           placeholder="Search by name or SKU code…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <span className="text-sm text-muted hidden sm:inline">
-          {q
-            ? `${products.length} match`
-            : `Showing ${products.length}${products.length === 300 ? "+" : ""} item${products.length === 1 ? "" : "s"}`}
-        </span>
-        <button className="btn-primary ml-auto sm:hidden" onClick={() => setShowMobileAdd(true)}>
-          + Add SKU
-        </button>
       </div>
 
       {/* Mobile: "add new" opens as a full form, not a cramped inline row */}
@@ -81,7 +88,7 @@ export function CatalogClient() {
       )}
 
       {/* Desktop / tablet: Excel-style grid, one row per SKU */}
-      <div className="hidden sm:block rounded-2xl border border-border bg-surface overflow-x-auto">
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm min-w-[1100px]">
           <thead className="bg-background text-muted text-left">
             <tr>
@@ -119,7 +126,7 @@ export function CatalogClient() {
       </div>
 
       {/* Mobile: stacked cards, one per SKU */}
-      <div className="sm:hidden space-y-3">
+      <div className="sm:hidden p-4 space-y-3">
         {!loading && products.length === 0 && (
           <p className="text-center text-muted py-8">
             {q ? "No items match that search." : "No items yet — tap “+ Add SKU” above."}
@@ -140,10 +147,10 @@ export function CatalogClient() {
       </div>
 
       {!q && products.length === 300 && (
-        <p className="text-xs text-muted mt-2">
+        <p className="text-xs text-muted px-4 sm:px-5 py-3 border-t border-border">
           Showing the first 300 items — use search above to find a specific one.
         </p>
       )}
-    </div>
+    </Panel>
   );
 }
