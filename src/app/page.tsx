@@ -1,10 +1,17 @@
 import Link from "next/link";
+import { TodaysSummary } from "./todays-summary";
+import { LowStockAlerts } from "./low-stock-alerts";
+
+// Today's Summary and Low Stock read live data — never cache this page.
+export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
-      <h1 className="text-2xl font-semibold text-copper-dark mb-1">Ganpati Metals</h1>
-      <p className="text-muted mb-8 sm:mb-10">Retail Counter</p>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-12 space-y-5">
+      <div>
+        <h1 className="text-2xl font-semibold text-copper-dark mb-1">Ganpati Metals</h1>
+        <p className="text-muted">Retail Counter</p>
+      </div>
 
       <div className="grid sm:grid-cols-3 gap-3">
         <SegmentCard href="/billing" emoji="🧾" title="New Bill">
@@ -17,6 +24,9 @@ export default function Home() {
           Every bill raised so far, with invoice numbers.
         </SegmentCard>
       </div>
+
+      <TodaysSummary />
+      <LowStockAlerts />
 
       {/* Retail Vendors and Credit Vendors live in the sidebar only —
           kept off this screen on purpose so it doesn't get crowded. */}

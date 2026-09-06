@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { SkuRow } from "./sku-row";
 import { NewSkuRow } from "./new-sku-row";
@@ -24,8 +25,9 @@ const COLUMNS = [
 ];
 
 export function CatalogClient() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(searchParams.get("q") ?? "");
   const [loading, setLoading] = useState(true);
   const [showMobileAdd, setShowMobileAdd] = useState(false);
 
