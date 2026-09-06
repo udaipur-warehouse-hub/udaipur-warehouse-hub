@@ -1,7 +1,17 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase-server";
 import { PrintButton } from "./print-button";
 import { BackLink } from "@/components/back-link";
+
+// The browser's print header uses the page <title> — keep it neutral for a
+// no-bill slip so nothing identifying shows up there when printed.
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = supabaseServer();
+  const { data: sale } = await supabase.from("sales").select("bill_type").eq("id", id).single();
+  return { title: sale?.bill_type === "non_gst" ? "Bill" : "Ganpati Metals" };
+}
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
