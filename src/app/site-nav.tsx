@@ -15,84 +15,43 @@ const SEGMENT_LINKS = [
   { href: "/credit-vendors", label: "Credit Vendors" },
 ];
 
-export function SiteNav() {
-  const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-
-  function isActive(href: string) {
-    return pathname === href;
-  }
-
+function Logo() {
   return (
-    <header className="no-print border-b border-border bg-surface sticky top-0 z-10">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-lg text-copper-dark shrink-0">
-          <span className="inline-block h-8 w-8 rounded-full bg-copper text-white grid place-items-center text-sm font-bold">
-            GM
-          </span>
-          <span className="hidden xs:inline">Ganpati Metals</span>
-        </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
-          <span className="text-xs uppercase tracking-wide text-muted px-2">Retail Counter</span>
-          {RETAIL_COUNTER_LINKS.map((l) => (
-            <NavLink key={l.href} href={l.href} active={isActive(l.href)}>
-              {l.label}
-            </NavLink>
-          ))}
-          <span className="w-px h-6 bg-border mx-2" />
-          {SEGMENT_LINKS.map((l) => (
-            <NavLink key={l.href} href={l.href} active={isActive(l.href)}>
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden h-11 w-11 grid place-items-center rounded-lg hover:bg-background shrink-0"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Menu"
-        >
-          {open ? "✕" : "☰"}
-        </button>
-      </div>
-
-      {open && (
-        <nav className="md:hidden border-t border-border px-4 py-3 space-y-1">
-          <div className="text-xs uppercase tracking-wide text-muted px-2 pt-1 pb-1">Retail Counter</div>
-          {RETAIL_COUNTER_LINKS.map((l) => (
-            <MobileNavLink key={l.href} href={l.href} active={isActive(l.href)} onClick={() => setOpen(false)}>
-              {l.label}
-            </MobileNavLink>
-          ))}
-          <div className="h-px bg-border my-2" />
-          {SEGMENT_LINKS.map((l) => (
-            <MobileNavLink key={l.href} href={l.href} active={isActive(l.href)} onClick={() => setOpen(false)}>
-              {l.label}
-            </MobileNavLink>
-          ))}
-        </nav>
-      )}
-    </header>
-  );
-}
-
-function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className={`px-3 py-2 rounded-lg transition-colors ${
-        active ? "bg-copper/10 text-copper-dark" : "hover:bg-background"
-      }`}
-    >
-      {children}
+    <Link href="/" className="flex items-center gap-2 font-semibold text-copper-dark">
+      <span className="inline-block h-8 w-8 rounded-full bg-copper text-white grid place-items-center text-sm font-bold shrink-0">
+        GM
+      </span>
+      Ganpati Metals
     </Link>
   );
 }
 
-function MobileNavLink({
+function SidebarLinks({
+  isActive,
+  onNavigate,
+}: {
+  isActive: (href: string) => boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="space-y-0.5 text-sm">
+      <div className="text-xs uppercase tracking-wide text-muted px-3 pt-1 pb-1.5">Retail Counter</div>
+      {RETAIL_COUNTER_LINKS.map((l) => (
+        <SidebarLink key={l.href} href={l.href} active={isActive(l.href)} onClick={onNavigate}>
+          {l.label}
+        </SidebarLink>
+      ))}
+      <div className="h-px bg-border my-3" />
+      {SEGMENT_LINKS.map((l) => (
+        <SidebarLink key={l.href} href={l.href} active={isActive(l.href)} onClick={onNavigate}>
+          {l.label}
+        </SidebarLink>
+      ))}
+    </nav>
+  );
+}
+
+function SidebarLink({
   href,
   active,
   onClick,
@@ -100,18 +59,67 @@ function MobileNavLink({
 }: {
   href: string;
   active: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className={`block px-3 py-3 rounded-lg text-base ${
+      className={`block px-3 py-2.5 rounded-lg transition-colors ${
         active ? "bg-copper/10 text-copper-dark font-medium" : "hover:bg-background"
       }`}
     >
       {children}
     </Link>
+  );
+}
+
+// ERP-style left sidebar on desktop; a top bar that opens a slide-in drawer
+// on mobile, since a persistent sidebar would eat too much of a phone screen.
+export function SiteNav() {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const isActive = (href: string) => pathname === href;
+
+  return (
+    <>
+      <div className="md:hidden no-print sticky top-0 z-20 bg-surface border-b border-border h-14 flex items-center justify-between px-4">
+        <Logo />
+        <button
+          onClick={() => setOpen(true)}
+          className="h-11 w-11 grid place-items-center rounded-lg hover:bg-background -mr-1"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+      </div>
+
+      {open && (
+        <div className="md:hidden no-print fixed inset-0 z-30">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-72 max-w-[80vw] bg-surface border-r border-border p-4 overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <Logo />
+              <button
+                onClick={() => setOpen(false)}
+                className="h-10 w-10 grid place-items-center rounded-lg hover:bg-background"
+                aria-label="Close menu"
+              >
+                ✕
+              </button>
+            </div>
+            <SidebarLinks isActive={isActive} onNavigate={() => setOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 no-print border-r border-border bg-surface sticky top-0 h-screen overflow-y-auto p-4">
+        <div className="mb-6 px-1">
+          <Logo />
+        </div>
+        <SidebarLinks isActive={isActive} />
+      </aside>
+    </>
   );
 }
