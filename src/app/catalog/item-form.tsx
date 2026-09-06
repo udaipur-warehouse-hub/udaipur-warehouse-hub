@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { Product } from "@/lib/types";
+import { MATERIAL_TYPES, COMPANIES } from "@/lib/catalog-options";
+import { PresetSelect } from "./preset-select";
 
 const GST_RATES = [0, 5, 12, 18, 28];
 
@@ -17,13 +19,15 @@ export function ItemForm({
   const [form, setForm] = useState({
     sku_code: "",
     name: initialName,
-    category: "",
-    unit: "pcs",
+    material_type: "",
+    company: "",
     hsn_code: "",
+    selling_unit: "qty" as "qty" | "kg",
     gst_rate: 18,
+    price_type: "mrp" as "mrp" | "rate_based",
     cost_price: "",
     selling_price: "",
-    current_stock: "0",
+    current_stock: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +53,7 @@ export function ItemForm({
           gst_rate: Number(form.gst_rate),
           cost_price: form.cost_price ? Number(form.cost_price) : null,
           selling_price: Number(form.selling_price),
-          current_stock: Number(form.current_stock || 0),
+          current_stock: form.current_stock === "" ? null : Number(form.current_stock),
         }),
       });
       const data = await res.json();
@@ -87,40 +91,48 @@ export function ItemForm({
             placeholder="e.g. Steel Kadhai 10 inch"
           />
         </Field>
-        <Field label="Category">
-          <input
+        <Field label="Type">
+          <PresetSelect
+            value={form.material_type}
+            options={MATERIAL_TYPES}
+            placeholder="Select type"
+            onChange={(v) => set("material_type", v)}
+            onCommit={() => {}}
             className="input"
-            value={form.category}
-            onChange={(e) => set("category", e.target.value)}
-            placeholder="e.g. Cookware"
           />
         </Field>
-        <Field label="Unit">
-          <input
+        <Field label="Company">
+          <PresetSelect
+            value={form.company}
+            options={COMPANIES}
+            placeholder="Select company"
+            onChange={(v) => set("company", v)}
+            onCommit={() => {}}
             className="input"
-            value={form.unit}
-            onChange={(e) => set("unit", e.target.value)}
-            placeholder="pcs / kg / set"
           />
+        </Field>
+        <Field label="Selling by">
+          <select className="input" value={form.selling_unit} onChange={(e) => set("selling_unit", e.target.value as "qty" | "kg")}>
+            <option value="qty">Quantity</option>
+            <option value="kg">Kg</option>
+          </select>
         </Field>
         <Field label="HSN code">
-          <input
-            className="input"
-            value={form.hsn_code}
-            onChange={(e) => set("hsn_code", e.target.value)}
-          />
+          <input className="input" value={form.hsn_code} onChange={(e) => set("hsn_code", e.target.value)} />
         </Field>
         <Field label="GST rate">
-          <select
-            className="input"
-            value={form.gst_rate}
-            onChange={(e) => set("gst_rate", Number(e.target.value))}
-          >
+          <select className="input" value={form.gst_rate} onChange={(e) => set("gst_rate", Number(e.target.value))}>
             {GST_RATES.map((r) => (
               <option key={r} value={r}>
                 {r}%
               </option>
             ))}
+          </select>
+        </Field>
+        <Field label="Price type">
+          <select className="input" value={form.price_type} onChange={(e) => set("price_type", e.target.value as "mrp" | "rate_based")}>
+            <option value="mrp">MRP</option>
+            <option value="rate_based">As per metal rate</option>
           </select>
         </Field>
         <Field label="Cost price (₹)">
@@ -141,11 +153,12 @@ export function ItemForm({
             onChange={(e) => set("selling_price", e.target.value)}
           />
         </Field>
-        <Field label="Opening stock">
+        <Field label="Opening stock (leave blank if unknown)">
           <input
             className="input"
             type="number"
             step="0.01"
+            placeholder="not tracked"
             value={form.current_stock}
             onChange={(e) => set("current_stock", e.target.value)}
           />

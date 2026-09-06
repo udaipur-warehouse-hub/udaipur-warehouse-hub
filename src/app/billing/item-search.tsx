@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
 import { ItemForm } from "../catalog/item-form";
+import { sellingUnitLabel } from "@/lib/selling-unit";
 
 export function ItemSearch({ onPick }: { onPick: (p: Product) => void }) {
   const [q, setQ] = useState("");
@@ -47,13 +48,18 @@ export function ItemSearch({ onPick }: { onPick: (p: Product) => void }) {
             <button
               key={p.id}
               onClick={() => pick(p)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-background flex justify-between"
+              className="w-full text-left px-3 py-3 text-sm hover:bg-background flex justify-between items-center gap-3"
             >
-              <span>
-                {p.name} <span className="text-muted font-mono text-xs">({p.sku_code})</span>
+              <span className="min-w-0">
+                <span className="block truncate">{p.name}</span>
+                <span className="text-muted text-xs">
+                  {[p.material_type, p.company].filter(Boolean).join(" · ") || p.sku_code}
+                </span>
               </span>
-              <span className="text-muted">
-                ₹{p.selling_price} · stock {p.current_stock}
+              <span className="text-muted text-xs shrink-0 text-right">
+                ₹{p.selling_price}/{sellingUnitLabel(p.selling_unit)}
+                <br />
+                {p.current_stock === null ? "stock not tracked" : `stock ${p.current_stock}`}
               </span>
             </button>
           ))}

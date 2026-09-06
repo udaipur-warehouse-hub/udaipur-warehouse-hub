@@ -1,62 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
+import { MATERIAL_TYPES, COMPANIES } from "@/lib/catalog-options";
+import { PresetSelect } from "./preset-select";
+import { useEditableProduct } from "./use-editable-product";
 
 const GST_RATES = [0, 5, 12, 18, 28];
 
-// One editable row of the SKU grid. Every field saves the moment you leave
-// the cell (blur) — no separate "save" button, like editing a spreadsheet.
+// One editable row of the desktop SKU grid — every field saves the moment
+// you leave the cell, like editing a spreadsheet.
 export function SkuRow({
+  sno,
   product,
   onSaved,
   onRemoved,
 }: {
+  sno: number;
   product: Product;
   onSaved: (p: Product) => void;
   onRemoved: (id: string) => void;
 }) {
-  const [values, setValues] = useState(product);
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const { values, set, save, status, remove } = useEditableProduct(product, onSaved);
 
-  useEffect(() => setValues(product), [product]);
-
-  function set<K extends keyof Product>(key: K, value: Product[K]) {
-    setValues((v) => ({ ...v, [key]: value }));
-  }
-
-  async function save(field: keyof Product) {
-    if (values[field] === product[field]) return; // nothing changed
-    setStatus("saving");
-    try {
-      const res = await fetch(`/api/products/${product.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [field]: values[field] }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not save");
-      setStatus("saved");
-      onSaved(data.product as Product);
-      setTimeout(() => setStatus((s) => (s === "saved" ? "idle" : s)), 1200);
-    } catch {
-      setStatus("error");
-      setValues(product); // revert
-    }
-  }
-
-  async function removeRow() {
+  async function handleRemove() {
     if (!confirm(`Remove "${product.name}" from the catalog?`)) return;
-    const res = await fetch(`/api/products/${product.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_active: false }),
-    });
-    if (res.ok) onRemoved(product.id);
+    if (await remove()) onRemoved(product.id);
   }
 
   return (
     <tr className={`border-t border-border ${status === "error" ? "bg-danger/5" : ""}`}>
+      <td className="px-2 py-1.5 text-xs text-muted text-center">{sno}</td>
       <td className="p-0">
         <input
           className="cell-input font-mono text-xs"
@@ -74,19 +47,21 @@ export function SkuRow({
         />
       </td>
       <td className="p-0">
-        <input
-          className="cell-input"
-          value={values.category ?? ""}
-          onChange={(e) => set("category", e.target.value)}
-          onBlur={() => save("category")}
+        <PresetSelect
+          value={values.material_type ?? ""}
+          options={MATERIAL_TYPES}
+          placeholder="Type"
+          onChange={(v) => set("material_type", v)}
+          onCommit={() => save("material_type")}
         />
       </td>
       <td className="p-0">
-        <input
-          className="cell-input"
-          value={values.unit}
-          onChange={(e) => set("unit", e.target.value)}
-          onBlur={() => save("unit")}
+        <PresetSelect
+          value={values.company ?? ""}
+          options={COMPANIES}
+          placeholder="Company"
+          onChange={(v) => set("company", v)}
+          onCommit={() => save("company")}
         />
       </td>
       <td className="p-0">
@@ -96,6 +71,19 @@ export function SkuRow({
           onChange={(e) => set("hsn_code", e.target.value)}
           onBlur={() => save("hsn_code")}
         />
+      </td>
+      <td className="p-0">
+        <select
+          className="cell-input"
+          value={values.selling_unit}
+          onChange={(e) => {
+            set("selling_unit", e.target.value as Product["selling_unit"]);
+            setTimeout(() => save("selling_unit"), 0);
+          }}
+        >
+          <option value="qty">By quantity</option>
+          <option value="kg">By kg</option>
+        </select>
       </td>
       <td className="p-0">
         <select
@@ -114,14 +102,17 @@ export function SkuRow({
         </select>
       </td>
       <td className="p-0">
-        <input
-          className="cell-input text-right"
-          type="number"
-          step="0.01"
-          value={values.cost_price ?? ""}
-          onChange={(e) => set("cost_price", e.target.value === "" ? null : Number(e.target.value))}
-          onBlur={() => save("cost_price")}
-        />
+        <select
+          className="cell-input"
+          value={values.price_type}
+          onChange={(e) => {
+            set("price_type", e.target.value as Product["price_type"]);
+            setTimeout(() => save("price_type"), 0);
+          }}
+        >
+          <option value="mrp">MRP</option>
+          <option value="rate_based">As per rate</option>
+        </select>
       </td>
       <td className="p-0">
         <input
@@ -138,8 +129,9 @@ export function SkuRow({
           className="cell-input text-right"
           type="number"
           step="0.01"
-          value={values.current_stock}
-          onChange={(e) => set("current_stock", Number(e.target.value))}
+          placeholder="not tracked"
+          value={values.current_stock ?? ""}
+          onChange={(e) => set("current_stock", e.target.value === "" ? null : Number(e.target.value))}
           onBlur={() => save("current_stock")}
         />
       </td>
@@ -148,7 +140,7 @@ export function SkuRow({
         {status === "saved" && <span className="text-xs text-success">✓</span>}
         {status === "error" && <span className="text-xs text-danger">error</span>}
         {status === "idle" && (
-          <button onClick={removeRow} className="text-xs text-muted hover:text-danger" title="Remove item">
+          <button onClick={handleRemove} className="text-xs text-muted hover:text-danger" title="Remove item">
             ✕
           </button>
         )}

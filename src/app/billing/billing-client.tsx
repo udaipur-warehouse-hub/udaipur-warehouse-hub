@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CartLine, Product } from "@/lib/types";
 import { ItemSearch } from "./item-search";
+import { sellingUnitLabel } from "@/lib/selling-unit";
 
 type BillType = "gst" | "non_gst";
 type PaymentMethod = "cash" | "card" | "online";
@@ -30,7 +31,7 @@ export function BillingClient() {
           product_id: p.id,
           sku_code: p.sku_code,
           name: p.name,
-          unit: p.unit,
+          unit: sellingUnitLabel(p.selling_unit),
           qty: 1,
           unit_price: p.selling_price,
           gst_rate: p.gst_rate,
@@ -200,10 +201,29 @@ export function BillingClient() {
           </div>
         )}
 
-        <button onClick={completeSale} disabled={submitting} className="btn-primary w-full py-3 text-base">
+        {/* Desktop: button sits in the sidebar. Mobile: it's in the sticky
+            bar below instead, so it stays reachable on a long cart. */}
+        <button
+          onClick={completeSale}
+          disabled={submitting}
+          className="btn-primary w-full py-3 text-base hidden lg:block"
+        >
           {submitting ? "Saving…" : "Complete sale & print bill"}
         </button>
       </div>
+
+      {/* Mobile sticky checkout bar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-10 bg-surface border-t border-border p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] flex items-center gap-3">
+        <div className="text-sm">
+          <div className="text-muted text-xs">Total</div>
+          <div className="font-semibold text-base">₹{total.toFixed(2)}</div>
+        </div>
+        <button onClick={completeSale} disabled={submitting} className="btn-primary flex-1 py-3 text-base">
+          {submitting ? "Saving…" : "Complete sale"}
+        </button>
+      </div>
+      {/* spacer so the sticky bar never covers the last cart row on mobile */}
+      <div className="lg:hidden h-20" />
     </div>
   );
 }

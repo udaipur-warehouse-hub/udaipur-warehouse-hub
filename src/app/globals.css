@@ -33,25 +33,33 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer components {
+  /* text-base (16px) on phones stops iOS Safari auto-zooming when you tap
+     an input; text-sm kicks back in from sm: up where that isn't an issue. */
   .input {
-    @apply w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm
+    @apply w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-base sm:text-sm sm:py-2
       focus:outline-none focus:ring-2 focus:ring-copper/40 focus:border-copper;
   }
   .btn-primary {
-    @apply rounded-lg bg-copper text-white px-4 py-2 text-sm font-medium
-      hover:bg-copper-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply rounded-lg bg-copper text-white px-4 py-2.5 min-h-11 text-sm font-medium
+      hover:bg-copper-dark active:bg-copper-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium
-      hover:bg-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply rounded-lg border border-border bg-surface px-4 py-2.5 min-h-11 text-sm font-medium
+      hover:bg-background active:bg-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .cell-input {
-    @apply w-full bg-transparent px-2 py-1.5 text-sm rounded
+    @apply w-full bg-transparent px-2 py-2 text-base sm:text-sm sm:py-1.5 rounded
       focus:outline-none focus:ring-2 focus:ring-copper/40 focus:bg-white;
   }
+}
+
+/* Cards throughout the app get a soft lift instead of looking flat */
+.rounded-2xl.border.bg-surface {
+  box-shadow: 0 1px 2px rgba(43, 28, 20, 0.04);
 }
 
 @media print {

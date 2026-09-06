@@ -26,7 +26,19 @@ export async function GET(req: NextRequest) {
 // "quick add" flow while billing)
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { sku_code, name, category, unit, hsn_code, gst_rate, cost_price, selling_price, current_stock } = body;
+  const {
+    sku_code,
+    name,
+    material_type,
+    company,
+    hsn_code,
+    selling_unit,
+    gst_rate,
+    price_type,
+    cost_price,
+    selling_price,
+    current_stock,
+  } = body;
 
   if (!sku_code || !name || selling_price === undefined) {
     return NextResponse.json(
@@ -41,13 +53,17 @@ export async function POST(req: NextRequest) {
     .insert({
       sku_code: String(sku_code).trim(),
       name: String(name).trim(),
-      category: category?.trim() || null,
-      unit: unit?.trim() || "pcs",
+      material_type: material_type?.trim() || null,
+      company: company?.trim() || null,
+      unit: selling_unit === "kg" ? "kg" : "pcs",
+      selling_unit: selling_unit === "kg" ? "kg" : "qty",
       hsn_code: hsn_code?.trim() || null,
       gst_rate: gst_rate ?? 0,
+      price_type: price_type === "rate_based" ? "rate_based" : "mrp",
       cost_price: cost_price ?? null,
       selling_price,
-      current_stock: current_stock ?? 0,
+      // No number entered = not tracked yet. Only an explicit number (0 included) starts tracking.
+      current_stock: current_stock === null || current_stock === undefined ? null : current_stock,
     })
     .select()
     .single();
