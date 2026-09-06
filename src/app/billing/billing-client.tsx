@@ -9,6 +9,7 @@ import { Panel } from "@/components/panel";
 
 type BillType = "gst" | "non_gst";
 type PaymentMethod = "cash" | "card" | "online";
+type DiscountType = "percent" | "amount";
 
 export function BillingClient() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export function BillingClient() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [discountType, setDiscountType] = useState<DiscountType>("percent");
+  const [discountValue, setDiscountValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,16 +52,27 @@ export function BillingClient() {
     setCart((lines) => lines.filter((_, i) => i !== index));
   }
 
-  const { subtotal, gstAmount, total } = useMemo(() => {
+  // Mirrors the create_sale SQL function: discount is applied proportionally
+  // across lines before GST, so GST still comes out right even with mixed
+  // GST rates in the cart.
+  const { subtotal, discountAmount, gstAmount, total } = useMemo(() => {
     let sub = 0;
+    for (const l of cart) sub += l.qty * l.unit_price;
+
+    const rawDiscount = discountType === "percent" ? (sub * Number(discountValue || 0)) / 100 : Number(discountValue || 0);
+    const discount = Math.max(0, Math.min(rawDiscount, sub));
+    const ratio = sub > 0 ? discount / sub : 0;
+
     let gst = 0;
-    for (const l of cart) {
-      const lineTotal = l.qty * l.unit_price;
-      sub += lineTotal;
-      if (billType === "gst") gst += (lineTotal * l.gst_rate) / 100;
+    if (billType === "gst") {
+      for (const l of cart) {
+        const lineTotal = l.qty * l.unit_price;
+        gst += (lineTotal * (1 - ratio) * l.gst_rate) / 100;
+      }
     }
-    return { subtotal: sub, gstAmount: gst, total: sub + gst };
-  }, [cart, billType]);
+
+    return { subtotal: sub, discountAmount: discount, gstAmount: gst, total: sub - discount + gst };
+  }, [cart, billType, discountType, discountValue]);
 
   async function completeSale() {
     if (cart.length === 0) {
@@ -77,6 +91,8 @@ export function BillingClient() {
           customer_name: customerName,
           customer_phone: customerPhone,
           items: cart,
+          discount_type: Number(discountValue) > 0 ? discountType : null,
+          discount_value: Number(discountValue) || 0,
         }),
       });
       const data = await res.json();
@@ -200,9 +216,42 @@ export function BillingClient() {
           </div>
         </Panel>
 
-        <Panel step={4} title="Summary">
+        <Panel step={4} title="Discount" subtitle="Optional">
+          <div className="flex gap-2">
+            <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
+              <button
+                type="button"
+                onClick={() => setDiscountType("percent")}
+                className={`px-3 py-2 text-sm ${discountType === "percent" ? "bg-copper text-white" : "hover:bg-background"}`}
+              >
+                %
+              </button>
+              <button
+                type="button"
+                onClick={() => setDiscountType("amount")}
+                className={`px-3 py-2 text-sm border-l border-border ${
+                  discountType === "amount" ? "bg-copper text-white" : "hover:bg-background"
+                }`}
+              >
+                ₹
+              </button>
+            </div>
+            <input
+              className="input"
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder={discountType === "percent" ? "e.g. 10" : "e.g. 50"}
+              value={discountValue}
+              onChange={(e) => setDiscountValue(e.target.value)}
+            />
+          </div>
+        </Panel>
+
+        <Panel step={5} title="Summary">
           <div className="space-y-2 text-sm">
             <Row label="Subtotal" value={subtotal} />
+            {discountAmount > 0 && <Row label="Discount" value={-discountAmount} />}
             {billType === "gst" && <Row label="GST" value={gstAmount} />}
             <div className="border-t border-border pt-2">
               <Row label="Total" value={total} bold />
@@ -266,10 +315,13 @@ function ToggleButton({
 }
 
 function Row({ label, value, bold }: { label: string; value: number; bold?: boolean }) {
+  const sign = value < 0 ? "-" : "";
   return (
     <div className={`flex justify-between ${bold ? "font-semibold text-base" : "text-muted"}`}>
       <span>{label}</span>
-      <span>₹{value.toFixed(2)}</span>
+      <span>
+        {sign}₹{Math.abs(value).toFixed(2)}
+      </span>
     </div>
   );
 }

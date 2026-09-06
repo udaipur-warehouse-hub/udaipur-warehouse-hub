@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { PrintButton } from "./print-button";
+import { BackLink } from "@/components/back-link";
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,10 +20,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      <div className="no-print flex justify-between items-center mb-4">
-        <a href="/billing" className="text-sm text-copper-dark hover:underline">
-          ← New bill
-        </a>
+      <div className="no-print flex justify-between items-center">
+        <BackLink href="/billing" label="New bill" />
         <PrintButton />
       </div>
 
@@ -84,16 +83,24 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
         <div className="ml-auto max-w-[220px] space-y-1 text-sm">
           {isGst && (
-            <>
-              <div className="flex justify-between">
-                <span className="text-muted">Subtotal</span>
-                <span>₹{Number(sale.subtotal).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">GST</span>
-                <span>₹{Number(sale.gst_amount).toFixed(2)}</span>
-              </div>
-            </>
+            <div className="flex justify-between">
+              <span className="text-muted">Subtotal</span>
+              <span>₹{Number(sale.subtotal).toFixed(2)}</span>
+            </div>
+          )}
+          {Number(sale.discount_amount) > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted">
+                Discount{sale.discount_type === "percent" ? ` (${sale.discount_value}%)` : ""}
+              </span>
+              <span>-₹{Number(sale.discount_amount).toFixed(2)}</span>
+            </div>
+          )}
+          {isGst && (
+            <div className="flex justify-between">
+              <span className="text-muted">GST</span>
+              <span>₹{Number(sale.gst_amount).toFixed(2)}</span>
+            </div>
           )}
           <div className="flex justify-between font-semibold text-base border-t border-border pt-1">
             <span>Total</span>

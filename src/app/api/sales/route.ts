@@ -17,13 +17,16 @@ type CartItem = {
 // number, line items and stock deduction all succeed or all fail together.
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { bill_type, payment_method, customer_name, customer_phone, items } = body as {
-    bill_type: "gst" | "non_gst";
-    payment_method: "cash" | "card" | "online";
-    customer_name?: string;
-    customer_phone?: string;
-    items: CartItem[];
-  };
+  const { bill_type, payment_method, customer_name, customer_phone, items, discount_type, discount_value } =
+    body as {
+      bill_type: "gst" | "non_gst";
+      payment_method: "cash" | "card" | "online";
+      customer_name?: string;
+      customer_phone?: string;
+      items: CartItem[];
+      discount_type?: "percent" | "amount" | null;
+      discount_value?: number;
+    };
 
   if (!bill_type || !payment_method || !Array.isArray(items) || items.length === 0) {
     return NextResponse.json(
@@ -40,6 +43,8 @@ export async function POST(req: NextRequest) {
     p_customer_phone: customer_phone ?? "",
     p_financial_year: currentFinancialYear(),
     p_items: items,
+    p_discount_type: discount_type || null,
+    p_discount_value: discount_value || 0,
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

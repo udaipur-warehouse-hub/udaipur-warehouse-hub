@@ -4,38 +4,22 @@ export default function Home() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
       <h1 className="text-2xl font-semibold text-copper-dark mb-1">Ganpati Metals</h1>
-      <p className="text-muted mb-8 sm:mb-10">Pick where you want to work</p>
+      <p className="text-muted mb-8 sm:mb-10">Retail Counter</p>
 
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">
-          Retail Counter — everything below is ready to use
-        </h2>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <SegmentCard href="/billing" emoji="🧾" title="New Bill">
-            Cash, card or online — with or without a GST bill.
-          </SegmentCard>
-          <SegmentCard href="/catalog" emoji="📦" title="Item Catalog">
-            All your SKUs in one editable sheet. Add new ones any time.
-          </SegmentCard>
-          <SegmentCard href="/sales" emoji="📜" title="Sales History">
-            Every bill raised so far, with invoice numbers.
-          </SegmentCard>
-        </div>
-      </section>
+      <div className="grid sm:grid-cols-3 gap-3">
+        <SegmentCard href="/billing" emoji="🧾" title="New Bill">
+          Cash, card or online — with or without a GST bill.
+        </SegmentCard>
+        <SegmentCard href="/catalog" emoji="📦" title="Item Catalog">
+          All your SKUs in one editable sheet. Add new ones any time.
+        </SegmentCard>
+        <SegmentCard href="/sales" emoji="📜" title="Sales History">
+          Every bill raised so far, with invoice numbers.
+        </SegmentCard>
+      </div>
 
-      <section>
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">
-          Other segments
-        </h2>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <SegmentCard href="/retail-vendors" emoji="🤝" title="Retail Vendors">
-            Vendors on credit who settle up weekly — coming next.
-          </SegmentCard>
-          <SegmentCard href="/credit-vendors" emoji="🏨" title="Credit Vendors">
-            Big regular buyers on a fixed payment plan — coming after that.
-          </SegmentCard>
-        </div>
-      </section>
+      {/* Retail Vendors and Credit Vendors live in the sidebar only —
+          kept off this screen on purpose so it doesn't get crowded. */}
     </div>
   );
 }
