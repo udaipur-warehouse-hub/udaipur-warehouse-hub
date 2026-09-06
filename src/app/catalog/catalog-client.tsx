@@ -2,13 +2,26 @@
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
-import { ItemForm } from "./item-form";
+import { SkuRow } from "./sku-row";
+import { NewSkuRow } from "./new-sku-row";
+
+const COLUMNS = [
+  "SKU code",
+  "Name",
+  "Category",
+  "Unit",
+  "HSN",
+  "GST",
+  "Cost (₹)",
+  "Price (₹)",
+  "Stock",
+  "",
+];
 
 export function CatalogClient() {
   const [products, setProducts] = useState<Product[]>([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
 
   async function load(query = "") {
     setLoading(true);
@@ -33,57 +46,52 @@ export function CatalogClient() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <button className="btn-primary ml-auto" onClick={() => setShowForm(true)}>
-          + Add item
-        </button>
+        <span className="text-sm text-muted">
+          {q ? `${products.length} match` : `Showing ${products.length}${products.length === 300 ? "+" : ""} item${products.length === 1 ? "" : "s"}`}
+        </span>
       </div>
 
-      {showForm && (
-        <div className="mb-6 rounded-2xl border border-border bg-surface p-5">
-          <h2 className="font-semibold mb-3">Add a new item</h2>
-          <ItemForm
-            onSaved={(p) => {
-              setProducts((list) => [p, ...list]);
-              setShowForm(false);
-            }}
-            onCancel={() => setShowForm(false)}
-          />
-        </div>
-      )}
-
-      <div className="rounded-2xl border border-border bg-surface overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-2xl border border-border bg-surface overflow-x-auto">
+        <table className="w-full text-sm min-w-[900px]">
           <thead className="bg-background text-muted text-left">
             <tr>
-              <th className="px-4 py-2 font-medium">SKU</th>
-              <th className="px-4 py-2 font-medium">Name</th>
-              <th className="px-4 py-2 font-medium">Category</th>
-              <th className="px-4 py-2 font-medium">GST</th>
-              <th className="px-4 py-2 font-medium text-right">Price (₹)</th>
-              <th className="px-4 py-2 font-medium text-right">Stock</th>
+              {COLUMNS.map((c) => (
+                <th key={c} className="px-2 py-2 font-medium whitespace-nowrap">
+                  {c}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
+            <NewSkuRow onCreated={(p) => setProducts((list) => [p, ...list])} />
+
             {!loading && products.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted">
-                  {q ? "No items match that search." : "No items yet — add your first one above."}
+                <td colSpan={COLUMNS.length} className="px-4 py-8 text-center text-muted">
+                  {q ? "No items match that search." : "No items yet — add your first one in the row above."}
                 </td>
               </tr>
             )}
+
             {products.map((p) => (
-              <tr key={p.id} className="border-t border-border">
-                <td className="px-4 py-2 font-mono text-xs">{p.sku_code}</td>
-                <td className="px-4 py-2">{p.name}</td>
-                <td className="px-4 py-2 text-muted">{p.category || "—"}</td>
-                <td className="px-4 py-2 text-muted">{p.gst_rate}%</td>
-                <td className="px-4 py-2 text-right">{p.selling_price.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right">{p.current_stock}</td>
-              </tr>
+              <SkuRow
+                key={p.id}
+                product={p}
+                onSaved={(updated) =>
+                  setProducts((list) => list.map((x) => (x.id === updated.id ? updated : x)))
+                }
+                onRemoved={(id) => setProducts((list) => list.filter((x) => x.id !== id))}
+              />
             ))}
           </tbody>
         </table>
       </div>
+
+      {!q && products.length === 300 && (
+        <p className="text-xs text-muted mt-2">
+          Showing the first 300 items — use search above to find a specific one.
+        </p>
+      )}
     </div>
   );
 }

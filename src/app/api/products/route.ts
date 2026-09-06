@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     .select("*")
     .eq("is_active", true)
     .order("name", { ascending: true })
-    .limit(50);
+    .limit(q ? 50 : 300);
 
   if (q) {
     query = query.or(`name.ilike.%${q}%,sku_code.ilike.%${q}%`);
