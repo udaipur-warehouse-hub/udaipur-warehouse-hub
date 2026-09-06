@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json();
   const patch: Record<string, unknown> = {};
-  for (const field of ["name", "phone", "address", "is_active"] as const) {
+  for (const field of ["name", "firm_name", "phone", "address", "is_active"] as const) {
     if (field in body) patch[field] = body[field];
   }
   if (Object.keys(patch).length === 0) {

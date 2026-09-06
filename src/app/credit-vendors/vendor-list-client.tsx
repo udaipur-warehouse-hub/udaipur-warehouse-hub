@@ -62,8 +62,9 @@ export function VendorListClient() {
               className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-background transition-colors"
             >
               <div className="min-w-0">
-                <div className="font-medium truncate">{v.name}</div>
-                <div className="text-xs text-muted">
+                <div className="font-medium truncate">{v.firm_name || v.name}</div>
+                <div className="text-xs text-muted truncate">
+                  {v.firm_name && `${v.name} · `}
                   {v.phone || "no phone"}
                   {v.payment_amount && ` · ₹${v.payment_amount}/${v.payment_frequency}`}
                 </div>
@@ -83,6 +84,7 @@ export function VendorListClient() {
 
 function AddVendorModal({ onClose, onAdded }: { onClose: () => void; onAdded: (v: CreditVendor) => void }) {
   const [name, setName] = useState("");
+  const [firmName, setFirmName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [frequency, setFrequency] = useState<"weekly" | "monthly">("monthly");
@@ -103,6 +105,7 @@ function AddVendorModal({ onClose, onAdded }: { onClose: () => void; onAdded: (v
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          firm_name: firmName,
           phone,
           address,
           payment_frequency: frequency,
@@ -133,6 +136,10 @@ function AddVendorModal({ onClose, onAdded }: { onClose: () => void; onAdded: (v
           <label className="block">
             <span className="block text-xs font-medium text-muted mb-1">Name *</span>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium text-muted mb-1">Firm name</span>
+            <input className="input" value={firmName} onChange={(e) => setFirmName(e.target.value)} />
           </label>
           <label className="block">
             <span className="block text-xs font-medium text-muted mb-1">Phone</span>

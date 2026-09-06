@@ -18,6 +18,7 @@ export type Product = {
 export type RetailVendor = {
   id: string;
   name: string;
+  firm_name: string | null;
   phone: string | null;
   address: string | null;
   is_active: boolean;
@@ -39,6 +40,7 @@ export type VendorLedgerEntry = {
 export type CreditVendor = {
   id: string;
   name: string;
+  firm_name: string | null;
   phone: string | null;
   address: string | null;
   payment_frequency: "weekly" | "monthly";

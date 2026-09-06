@@ -62,9 +62,11 @@ export function VendorListClient() {
               className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-background transition-colors"
             >
               <div className="min-w-0">
-                <div className="font-medium truncate">{v.name}</div>
-                <div className="text-xs text-muted">
-                  {v.phone || "no phone"} {v.last_activity && `· last activity ${v.last_activity}`}
+                <div className="font-medium truncate">{v.firm_name || v.name}</div>
+                <div className="text-xs text-muted truncate">
+                  {v.firm_name && `${v.name} · `}
+                  {v.phone || "no phone"}
+                  {v.last_activity && ` · last activity ${v.last_activity}`}
                 </div>
               </div>
               <div className={`text-right shrink-0 font-semibold ${v.balance > 0 ? "text-danger" : "text-success"}`}>
@@ -82,6 +84,7 @@ export function VendorListClient() {
 
 function AddVendorModal({ onClose, onAdded }: { onClose: () => void; onAdded: (v: RetailVendor) => void }) {
   const [name, setName] = useState("");
+  const [firmName, setFirmName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
@@ -98,7 +101,7 @@ function AddVendorModal({ onClose, onAdded }: { onClose: () => void; onAdded: (v
       const res = await fetch("/api/retail-vendors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, address }),
+        body: JSON.stringify({ name, firm_name: firmName, phone, address }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not save vendor");
@@ -124,6 +127,10 @@ function AddVendorModal({ onClose, onAdded }: { onClose: () => void; onAdded: (v
           <label className="block">
             <span className="block text-xs font-medium text-muted mb-1">Name *</span>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium text-muted mb-1">Firm name</span>
+            <input className="input" value={firmName} onChange={(e) => setFirmName(e.target.value)} />
           </label>
           <label className="block">
             <span className="block text-xs font-medium text-muted mb-1">Phone</span>

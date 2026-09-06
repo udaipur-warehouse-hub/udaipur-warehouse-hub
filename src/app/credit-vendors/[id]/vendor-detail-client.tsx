@@ -40,8 +40,8 @@ export function VendorDetailClient({ vendorId }: { vendorId: string }) {
   return (
     <div className="space-y-5">
       <Panel
-        title={vendor.name}
-        subtitle={[vendor.phone, vendor.address].filter(Boolean).join(" · ") || undefined}
+        title={vendor.firm_name || vendor.name}
+        subtitle={[vendor.firm_name && vendor.name, vendor.phone, vendor.address].filter(Boolean).join(" · ") || undefined}
       >
         <div className="flex items-baseline justify-between mb-3">
           <span className="text-sm text-muted">Current balance</span>

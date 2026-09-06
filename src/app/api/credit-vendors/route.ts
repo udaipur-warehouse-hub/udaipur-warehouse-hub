@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     .order("name", { ascending: true });
 
   if (q) {
-    query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
+    query = query.or(`name.ilike.%${q}%,firm_name.ilike.%${q}%,phone.ilike.%${q}%`);
   }
 
   const { data, error } = await query;
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 // POST /api/credit-vendors -> add a new big credit vendor
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, phone, address, payment_frequency, payment_amount } = body;
+  const { name, firm_name, phone, address, payment_frequency, payment_amount } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: "Vendor name is required" }, { status: 400 });
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     .from("credit_vendors")
     .insert({
       name: name.trim(),
+      firm_name: firm_name?.trim() || null,
       phone: phone?.trim() || null,
       address: address?.trim() || null,
       payment_frequency: payment_frequency === "weekly" ? "weekly" : "monthly",

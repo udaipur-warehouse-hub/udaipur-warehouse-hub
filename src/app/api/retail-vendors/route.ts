@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     .order("name", { ascending: true });
 
   if (q) {
-    query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
+    query = query.or(`name.ilike.%${q}%,firm_name.ilike.%${q}%,phone.ilike.%${q}%`);
   }
 
   const { data, error } = await query;
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 // POST /api/retail-vendors -> add a new vendor
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, phone, address } = body;
+  const { name, firm_name, phone, address } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: "Vendor name is required" }, { status: 400 });
@@ -33,7 +33,12 @@ export async function POST(req: NextRequest) {
   const supabase = supabaseServer();
   const { data, error } = await supabase
     .from("retail_vendors")
-    .insert({ name: name.trim(), phone: phone?.trim() || null, address: address?.trim() || null })
+    .insert({
+      name: name.trim(),
+      firm_name: firm_name?.trim() || null,
+      phone: phone?.trim() || null,
+      address: address?.trim() || null,
+    })
     .select()
     .single();
 
