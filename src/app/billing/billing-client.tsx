@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CartLine, Product } from "@/lib/types";
 import { ItemSearch } from "./item-search";
-import { sellingUnitLabel } from "@/lib/selling-unit";
+import { sellingUnitLabel, roundQtyForUnit } from "@/lib/selling-unit";
 import { Panel } from "@/components/panel";
 import { NumberField } from "@/components/number-field";
 
@@ -15,7 +15,7 @@ type DiscountType = "percent" | "amount";
 export function BillingClient() {
   const router = useRouter();
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [billType, setBillType] = useState<BillType>("gst");
+  const [billType, setBillType] = useState<BillType>("non_gst");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -147,9 +147,11 @@ export function BillingClient() {
                     <div className="flex items-center gap-1.5">
                       <NumberField
                         className="input py-1 w-16"
-                        min={0.01}
+                        min={line.unit === "kg" ? 0.05 : 1}
+                        step={line.unit === "kg" ? "0.05" : "1"}
                         value={line.qty}
                         onChange={(v) => updateLine(i, { qty: v ?? 0 })}
+                        onCommit={() => updateLine(i, { qty: roundQtyForUnit(line.qty, line.unit) })}
                       />
                       <span className="text-xs text-muted shrink-0">{line.unit}</span>
                     </div>
