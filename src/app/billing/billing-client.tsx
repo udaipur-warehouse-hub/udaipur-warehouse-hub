@@ -6,6 +6,7 @@ import type { CartLine, Product } from "@/lib/types";
 import { ItemSearch } from "./item-search";
 import { sellingUnitLabel } from "@/lib/selling-unit";
 import { Panel } from "@/components/panel";
+import { NumberField } from "@/components/number-field";
 
 type BillType = "gst" | "non_gst";
 type PaymentMethod = "cash" | "card" | "online";
@@ -122,8 +123,8 @@ export function BillingClient() {
             <thead className="bg-background text-muted text-left">
               <tr>
                 <th className="px-3 py-2 font-medium">Item</th>
-                <th className="px-3 py-2 font-medium w-20">Qty</th>
-                <th className="px-3 py-2 font-medium w-28">Price (₹)</th>
+                <th className="px-3 py-2 font-medium w-32">Qty</th>
+                <th className="px-3 py-2 font-medium w-32">Rate (₹)</th>
                 <th className="px-3 py-2 font-medium w-24 text-right">Total (₹)</th>
                 <th className="w-10"></th>
               </tr>
@@ -143,24 +144,27 @@ export function BillingClient() {
                     <div className="text-xs text-muted font-mono">{line.sku_code}</div>
                   </td>
                   <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min={0.01}
-                      step="0.01"
-                      className="input py-1"
-                      value={line.qty}
-                      onChange={(e) => updateLine(i, { qty: Number(e.target.value) })}
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <NumberField
+                        className="input py-1 w-16"
+                        min={0.01}
+                        value={line.qty}
+                        onChange={(v) => updateLine(i, { qty: v ?? 0 })}
+                      />
+                      <span className="text-xs text-muted shrink-0">{line.unit}</span>
+                    </div>
                   </td>
                   <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      className="input py-1"
-                      value={line.unit_price}
-                      onChange={(e) => updateLine(i, { unit_price: Number(e.target.value) })}
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted shrink-0">₹</span>
+                      <NumberField
+                        className="input py-1 w-20"
+                        min={0}
+                        value={line.unit_price}
+                        onChange={(v) => updateLine(i, { unit_price: v ?? 0 })}
+                      />
+                      <span className="text-xs text-muted shrink-0">/{line.unit}</span>
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-right">{(line.qty * line.unit_price).toFixed(2)}</td>
                   <td className="px-3 py-2 text-right">

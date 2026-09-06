@@ -47,6 +47,18 @@ export async function POST(req: NextRequest) {
     p_discount_value: discount_value || 0,
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // 23503 = foreign key violation — an item in the cart points at a
+    // product that no longer exists in the catalog (deleted/edited away
+    // since it was added to this bill). Give a recoverable message instead
+    // of a raw database error.
+    if (error.code === "23503") {
+      return NextResponse.json(
+        { error: "One of the items in this bill is no longer in the catalog. Remove it from the cart and search for it again." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ sale: data }, { status: 201 });
 }

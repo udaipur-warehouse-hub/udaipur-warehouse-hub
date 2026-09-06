@@ -4,6 +4,7 @@ import type { Product } from "@/lib/types";
 import { MATERIAL_TYPES, COMPANIES } from "@/lib/catalog-options";
 import { PresetSelect } from "./preset-select";
 import { useEditableProduct } from "./use-editable-product";
+import { NumberField } from "@/components/number-field";
 
 const GST_RATES = [0, 5, 12, 18, 28];
 
@@ -115,24 +116,21 @@ export function SkuRow({
         </select>
       </td>
       <td className="p-0">
-        <input
+        <NumberField
           className="cell-input text-right"
-          type="number"
-          step="0.01"
           value={values.selling_price}
-          onChange={(e) => set("selling_price", Number(e.target.value))}
-          onBlur={() => save("selling_price")}
+          onChange={(v) => set("selling_price", v ?? 0)}
+          onCommit={() => save("selling_price")}
         />
       </td>
       <td className="p-0">
-        <input
+        <NumberField
           className="cell-input text-right"
-          type="number"
-          step="0.01"
           placeholder="not tracked"
-          value={values.current_stock ?? ""}
-          onChange={(e) => set("current_stock", e.target.value === "" ? null : Number(e.target.value))}
-          onBlur={() => save("current_stock")}
+          allowNull
+          value={values.current_stock}
+          onChange={(v) => set("current_stock", v)}
+          onCommit={() => save("current_stock")}
         />
       </td>
       <td className="px-2 text-center w-16">
