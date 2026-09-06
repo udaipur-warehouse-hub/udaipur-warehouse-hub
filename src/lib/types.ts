@@ -51,6 +51,30 @@ export type CreditVendor = {
   last_activity: string | null;
 };
 
+export type Employee = {
+  id: string;
+  name: string;
+  role: string | null;
+  phone: string | null;
+  monthly_salary: number | null;
+  joined_on: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type ExpenseCategory = "purchase_gst" | "purchase_no_bill" | "salary" | "rent" | "other";
+
+export type Expense = {
+  id: string;
+  category: ExpenseCategory;
+  amount: number;
+  payment_method: "cash" | "card" | "online" | null;
+  note: string | null;
+  expense_date: string;
+  employee_id: string | null;
+  created_at: string;
+};
+
 export type CartLine = {
   product_id: string | null;
   sku_code: string;

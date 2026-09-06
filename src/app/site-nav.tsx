@@ -13,6 +13,8 @@ const RETAIL_COUNTER_LINKS = [
 const SEGMENT_LINKS = [
   { href: "/retail-vendors", label: "Retail Vendors" },
   { href: "/credit-vendors", label: "Credit Vendors" },
+  { href: "/finance", label: "Finance Overview" },
+  { href: "/employees", label: "Employees" },
 ];
 
 function Logo() {
