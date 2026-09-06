@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* Ganpati Metals — warm copper/brass palette (utensils shop),
+   deliberately distinct from other projects' color schemes. */
+:root {
+  --background: #fdf8f2;
+  --surface: #ffffff;
+  --foreground: #2b1c14;
+  --muted: #8a7563;
+  --border: #e8ddce;
+  --copper: #b5602f;
+  --copper-dark: #8f4522;
+  --amber: #c98a2c;
+  --success: #3f7d4f;
+  --danger: #b3402f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-copper: var(--copper);
+  --color-copper-dark: var(--copper-dark);
+  --color-amber: var(--amber);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm
+      focus:outline-none focus:ring-2 focus:ring-copper/40 focus:border-copper;
+  }
+  .btn-primary {
+    @apply rounded-lg bg-copper text-white px-4 py-2 text-sm font-medium
+      hover:bg-copper-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium
+      hover:bg-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
