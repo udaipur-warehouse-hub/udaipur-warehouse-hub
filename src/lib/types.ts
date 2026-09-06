@@ -36,6 +36,19 @@ export type VendorLedgerEntry = {
   created_at: string;
 };
 
+export type CreditVendor = {
+  id: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  payment_frequency: "weekly" | "monthly";
+  payment_amount: number | null;
+  is_active: boolean;
+  created_at: string;
+  balance: number;
+  last_activity: string | null;
+};
+
 export type CartLine = {
   product_id: string | null;
   sku_code: string;
